@@ -2,7 +2,7 @@
 title: "Bogar Server Access"
 author: "Britt"
 date: "2024-04-03"
-output: html_document
+output: rmarkdown::github_document
 ---
 
 # Instructions on How to Connect to the Bogar Lab Server
