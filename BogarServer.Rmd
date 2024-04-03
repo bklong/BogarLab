@@ -1,0 +1,31 @@
+---
+title: "Bogar Server Access"
+author: "Britt"
+date: "2024-04-03"
+output: html_document
+---
+
+# Instructions on How to Connect to the Bogar Lab Server
+
+### Making Sure You are Ready to Connect
+
+1.  For Mac users, you already have a terminal on your computer that will work. For PC users, download the app **GitBash** to access your laptop terminal (if you don't have it already).
+2.  Make sure you are connected to eduroam, the Bogar Lab WiFi, and/or PLB network (via wall internet in Green Hall or a VPN) For VPN access, use the Ivanti software following the instructions here: <https://ithelp.metro.ucdavis.edu/kb/vpn-virtual-private-network-ucd-access>
+3.  Open a terminal and get ready to code.
+
+### Connecting to the Server
+
+1.  Look at your username in the terminal. Your username is the part before the `@` symbol. If your username is different than the one Scott gave you, type `ssh -p 22345 -l [username] bogarprecision.plb.ucdavis.edu` and replace `[username]` with the username Scott gave you. If the username you have in your terminal matches the username Scott gave you, remove `-l [username]` from the above code and enter only `ssh -p 22345 bogarprecision.plb.ucdavis.edu`. Here's an example. This is how I had to log in to the server:
+
+`ssh -p 22345 -l bklong bogarprecision.plb.ucdavis.edu`
+
+If my username didn't need to be changed, it would have looked like this:
+
+`ssh -p 22345 bogarprecision.plb.ucdavis.edu`
+
+In this line of code, `ssh` is the command, and `-l` and `-p` are options that tell the command you want to change the username and server port respectively. You don't need to know that necessarily, but it can be helpful to learn why code works as you go so that you can troubleshoot things in the future!
+
+2.  Once you enter that, it will come up with a large paragraph of text. Type yes and enter or return.
+3.  It will now ask you for a password. Enter the password that Scott provided you. It will look like nothing is being typed, this is for security purposes. Click enter or return.
+4.  You are now logged in to the Bogar server. Change your password by typing `passwd` into the terminal.
+5.  Feel free to slack Brittany if you need help.
