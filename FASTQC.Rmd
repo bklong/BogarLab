@@ -1,0 +1,16 @@
+---
+title: "downloading program to server"
+author: "Britt"
+date: "2024-04-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{bash}
+scp -P 22345 ~/Desktop/fastqc_v0.12.1.zip bklong@bogarprecision.plb.ucdavis.edu:~/programs
+
+```
+
