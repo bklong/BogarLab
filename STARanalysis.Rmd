@@ -5,6 +5,8 @@ date: "2024-05-07"
 output: html_document
 ---
 
+#starting to code
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -39,4 +41,3 @@ $STAR_PATH --genomeDir $GENOME_INDEX \
 # --quantMode: Output gene counts
 
 ```
-
