@@ -11,6 +11,28 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+making a genome index:
+
+```{bash}
+# Define the path to the STAR executable
+STAR_PATH=/path/to/STAR
+
+# Define the path to the directory where you want to save the genome index
+GENOME_INDEX_DIR=/path/to/genome_index
+
+# Define the path to the reference genome FASTA file
+GENOME_FASTA=/path/to/reference_genome.fasta
+
+# Run STAR genome index generation
+$STAR_PATH --runMode genomeGenerate \
+           --genomeDir $GENOME_INDEX_DIR \
+           --genomeFastaFiles $GENOME_FASTA \
+           --runThreadN 4
+
+```
+
+running STAR:
+
 ```{bash}
 # Define the path to the STAR executable
 STAR_PATH=/path/to/STAR
