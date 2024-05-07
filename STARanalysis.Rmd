@@ -1,0 +1,42 @@
+---
+title: "STAR"
+author: "Britt"
+date: "2024-05-07"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{bash}
+# Define the path to the STAR executable
+STAR_PATH=/path/to/STAR
+
+# Define the path to the reference genome index
+GENOME_INDEX=/DemRNAanalysis/genome
+
+# Define the path to the directory containing the input FASTQ files
+INPUT_DIR=/DemRNAanalysis/seqs
+
+# Define the path to the output directory where STAR output will be saved
+OUTPUT_DIR=/DemRNAanalysis/STARoutput
+
+# Run STAR alignment
+$STAR_PATH --genomeDir $GENOME_INDEX \
+           --readFilesIn $INPUT_DIR/reads1.fastq $INPUT_DIR/reads2.fastq \
+           --outFileNamePrefix $OUTPUT_DIR/output_prefix \
+           --runThreadN 4 \
+           --outSAMtype BAM SortedByCoordinate \
+           --quantMode GeneCounts
+
+# Explanation of options:
+# --genomeDir: Path to the directory containing the genome index files
+# --readFilesIn: Path to the input FASTQ files (reads1 and reads2)
+# --outFileNamePrefix: Prefix for the output file names
+# --runThreadN: Number of threads to use for alignment
+# --outSAMtype: Output format (BAM SortedByCoordinate)
+# --quantMode: Output gene counts
+
+```
+
