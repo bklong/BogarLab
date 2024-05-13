@@ -27,6 +27,7 @@ making a genome index:
            --genomeDir ~/DemRNAanalysis/PSMEindex \
            --genomeFastaFiles ~/DemRNAanalysis/genome/Psme.1_0.fa \
            --runThreadN 4
+           --limitGenomeGenerateRAM 6425695398837
 ```
 
 running STAR:
