@@ -25,7 +25,7 @@ making a genome index:
 # Run STAR genome index generation
 ~/programs/STAR-2.7.11b/bin/Linux_x86_64_static/STAR --runMode genomeGenerate \
            --genomeDir ~/DemRNAanalysis/PSMEindex \
-           --genomeFastaFiles ~/DemRNAanalysis/genome/Psme.1_0.fa.gz \
+           --genomeFastaFiles ~/DemRNAanalysis/genome/Psme.1_0.fa \
            --runThreadN 4
 ```
 
