@@ -30,6 +30,15 @@ making a genome index:
            --limitGenomeGenerateRAM 6425695398837
 ```
 
+```{bash}
+#error from above code:
+May 13 01:30:00 ..... started STAR run
+May 13 01:30:00 ... starting to generate Genome files
+terminate called after throwing an instance of 'std::bad_alloc'
+  what():  std::bad_alloc
+Aborted (core dumped)
+```
+
 running STAR:
 
 ```{bash}
