@@ -16,19 +16,10 @@ download a reference genome to the server first
 making a genome index:
 
 ```{bash}
-# Define the path to the STAR executable
-STAR_PATH=/programs/STAR-2.7.11b/bin/Linux_x86_64_static/STAR
-
-# Define the path to the directory where you want to save the genome index
-GENOME_INDEX_DIR=/path/to/genome_index
-
-# Define the path to the reference genome FASTA file
-GENOME_FASTA=/path/to/reference_genome.fasta
-
 # Run STAR genome index generation
-$STAR_PATH --runMode genomeGenerate \
-           --genomeDir $GENOME_INDEX_DIR \
-           --genomeFastaFiles $GENOME_FASTA \
+~/programs/STAR-2.7.11b/bin/Linux_x86_64_static/STAR --runMode genomeGenerate \
+           --genomeDir ~/DemRNAanalysis/PSMEindex \
+           --genomeFastaFiles ~/DemRNAanalysis/genome/Psme.1_0.fa.gz \
            --runThreadN 4
 ```
 
