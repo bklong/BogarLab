@@ -13,6 +13,12 @@ knitr::opts_chunk$set(echo = TRUE)
 
 download a reference genome to the server first
 
+make sure reference genome is unzipped
+
+```{bash}
+gunzip -k Psme.1_0.fa.gz
+```
+
 making a genome index:
 
 ```{bash}
