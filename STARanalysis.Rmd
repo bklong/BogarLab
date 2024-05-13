@@ -11,11 +11,13 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+download a reference genome to the server first
+
 making a genome index:
 
 ```{bash}
 # Define the path to the STAR executable
-STAR_PATH=/path/to/STAR
+STAR_PATH=/programs/STAR-2.7.11b/bin/Linux_x86_64_static/STAR
 
 # Define the path to the directory where you want to save the genome index
 GENOME_INDEX_DIR=/path/to/genome_index
@@ -28,7 +30,6 @@ $STAR_PATH --runMode genomeGenerate \
            --genomeDir $GENOME_INDEX_DIR \
            --genomeFastaFiles $GENOME_FASTA \
            --runThreadN 4
-
 ```
 
 running STAR:
