@@ -44,6 +44,9 @@ gunzip -k Psme.1_0.fa.gz
 ```
 
 ```{bash, eval = FALSE}
+#or use hisat?
+hisat2 -x /data/Genomes/HISAT2_index/Psme_1_0_index -1 /data/Test/DFD_001_T14_R1.fastq.gz -2 /data/Test/DFD_001_T14_R2.fastq.gz -S output.sam --summary-file summary.txt --new-summary --mm
+
 # Run STAR genome index generation
 ~/programs/STAR-2.7.11b/bin/Linux_x86_64_static/STAR --runMode genomeGenerate \
            --genomeDir ~/DemRNAanalysis/PSMEindex \
