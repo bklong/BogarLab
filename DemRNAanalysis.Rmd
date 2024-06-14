@@ -98,3 +98,19 @@ time STAR --runThreadN 7 \
 --alignIntronMax 5000
 ```
 
+## Differential Gene Expression
+
+Programs needed: HTseq-count
+
+### Get Read Counts
+
+```{bash, eval = FALSE}
+#example
+htseq-count -s no -t CDS -i Parent \
+../../assignment-09-jnmaloof/output/STAR_out-IMB211_INTERNODE_A03/IMB211_INTERNODE_Aligned_A03.bam \
+../../assignment-09-jnmaloof/output/STAR_out-R500_INTERNODE_A03/R500_INTERNODE_Aligned_A03.bam \
+../../assignment-09-jnmaloof/input/Brapa_reference/Brapa_gene_v1.5.gff > A03_counts.tsv
+```
+
+
+
