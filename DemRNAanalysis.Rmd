@@ -3,28 +3,38 @@ title: "Demorie RNA Analysis Workflow"
 author: "Britt"
 date: "2024-06-14"
 output: html_document
+editor_options: 
+  markdown: 
+    wrap: sentence
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+**Basic steps for RNAseq Data Processing:**
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+1.  Check FASTQ quality.
+2.  Trim reads to keep high-quality reads.
+3.  Split reads based on barcodes.
+4.  Map to reference genome.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+(can also map to transcriptome)
 
-```{r cars}
-summary(cars)
-```
+**Basic steps for DGE Analysis:**
 
-## Including Plots
+1.  Load the RNAseq counts.
+2.  Normalize the counts.
+3.  QC the counts.
+4.  Create a data frame that describes the experiment.
+5.  Determine the dispersion parameter (how over-dispersed is the data?) 6. Fit a statistical model for gene expression as a function of experimental parameters.
+6.  Test the significance of experimental parameters for explaining gene expression.
+7.  Examine result.
 
-You can also embed plots, for example:
+## Processing RNAseq Data
 
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
+Programs needed: FASTQC, Trimmomatic, auto_barcode, 
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+### Index the Reference Genome
+
+
