@@ -33,8 +33,68 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Processing RNAseq Data
 
-Programs needed: FASTQC, Trimmomatic, auto_barcode, 
+Programs needed: FASTQC, Trimmomatic, auto_barcode, STAR
 
 ### Index the Reference Genome
 
+```{bash, eval = FALSE}
+#download a reference genome to the server first
+#make sure reference genome is unzipped
+gunzip -k Psme.1_0.fa.gz
+```
+
+```{bash, eval = FALSE}
+# Run STAR genome index generation
+~/programs/STAR-2.7.11b/bin/Linux_x86_64_static/STAR --runMode genomeGenerate \
+           --genomeDir ~/DemRNAanalysis/PSMEindex \
+           --genomeFastaFiles ~/DemRNAanalysis/genome/Psme.1_0.fa \
+           --runThreadN 4 \
+           --limitGenomeGenerateRAM 6425695398837
+```
+
+### Check Quality of Reads
+
+```{bash, eval = FALSE}
+fastqc
+#then load file of interest into user interface
+```
+
+### Trim Low Quality Reads if Necessary
+
+```{bash, eval = FALSE}
+#this is an example
+trimmomatic SE GH.lane67.fastq.gz GH.lane67.trimmed.fastq SLIDINGWINDOW:4:20 MINLEN:50
+trimmomatic SE GH.lane67.fastq.gz GH.lane67.trimmed.fastq SLIDINGWINDOW:4:20 MINLEN:50
+trimmomatic SE -threads 1 GH.lane67.fastq.gz GH.lane67.trimmed.fastq SLIDINGWINDOW:4:20 MINLEN:50
+trimmomatic SE -threads 1 GH.lane67.fastq.gz GH.lane67.trimmed.fastq SLIDINGWINDOW:4:20 MINLEN:50
+```
+
+If you trim reads, make sure you put them through FASTQC again to see if it worked.
+
+### Splitting by Barcodes
+
+```{bash, eval = FALSE}
+#use auto_barcode to split reads
+```
+
+### Check Quality of Libraries
+
+```{bash, eval = FALSE}
+fastqc --threads 7 -o ../../output/fastqc_out split_fq/*.fq
+
+multiqc fastqc_out
+```
+
+### Map Reads to Reference
+
+```{bash, eval = FALSE}
+#modify this to be a for loop for all fastq files
+time STAR --runThreadN 7 \
+--genomeDir input/Brapa_reference/Brapa_STAR_index \
+--readFilesIn input/Brapa_fastq/split_fq/IMB211_DP_1_SILIQUE.fq \
+--outFileNamePrefix output/STARout/IMB211_DP_1_SILIQUE.fq_ \
+--outSAMtype BAM SortedByCoordinate \
+--outBAMsortingThreadN 2 \
+--alignIntronMax 5000
+```
 
