@@ -27,9 +27,10 @@ knitr::opts_chunk$set(echo = TRUE)
 2.  Normalize the counts.
 3.  QC the counts.
 4.  Create a data frame that describes the experiment.
-5.  Determine the dispersion parameter (how over-dispersed is the data?) 6. Fit a statistical model for gene expression as a function of experimental parameters.
-6.  Test the significance of experimental parameters for explaining gene expression.
-7.  Examine result.
+5.  Determine the dispersion parameter (how over-dispersed is the data?) 
+6. Fit a statistical model for gene expression as a function of experimental parameters.
+7.  Test the significance of experimental parameters for explaining gene expression.
+8.  Examine result.
 
 ## Processing RNAseq Data
 
