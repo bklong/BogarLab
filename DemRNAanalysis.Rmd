@@ -62,7 +62,7 @@ hisat2 -x /data/Genomes/HISAT2_index/Psme_1_0_index -1 /data/Test/DFD_001_T14_R1
            --limitGenomeGenerateRAM 6425695398837
 ```
 
-```{bash}
+```{bash, eval = FALSE}
 ~/programs/STAR-2.7.11b/bin/Linux_x86_64_static/STAR --runMode genomeGenerate \
            --genomeDir ~/DemRNAanalysis/TRCIindex \
            --genomeFastaFiles ~/DemRNAanalysis/TRCIindex/Trucit1_1_AssemblyScaffolds.fasta \
