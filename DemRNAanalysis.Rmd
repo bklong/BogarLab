@@ -68,6 +68,19 @@ hisat2 -x /data/Genomes/HISAT2_index/Psme_1_0_index -1 /data/Test/DFD_001_T14_R1
            --genomeFastaFiles ~/DemRNAanalysis/TRCIindex/Trucit1_1_AssemblyScaffolds.fasta \
            --runThreadN 4 \
            --limitGenomeGenerateRAM 6425695398837
+           
+#need to modify overhang parameter (max read length - 1)
+#need annotation file for TRCI
+STAR \
+    --runThreadN 7 \
+    --runMode genomeGenerate \
+    --genomeDir TRCIindex \
+    --genomeSAindexNbases 12 \
+    --sjdbOverhang 93 \ 
+    --sjdbGTFfile Brapa_gene_v1.5.gff \
+    --sjdbGTFfeatureExon CDS \
+    --sjdbGTFtagExonParentTranscript Parent \
+    --genomeFastaFiles Trucit1_1_AssemblyScaffolds.fasta
 ```
 
 ### Check Quality of Reads
@@ -107,17 +120,13 @@ multiqc fastqc_out
 
 ```{bash, eval = FALSE}
 #modify this to be a for loop for all fastq files
-#need to modify overhang parameter (max read length - 1)
-STAR \
-    --runThreadN 7 \
-    --runMode genomeGenerate \
-    --genomeDir TRCIindex \
-    --genomeSAindexNbases 12 \
-    --sjdbOverhang 93 \ 
-    --sjdbGTFfile Brapa_gene_v1.5.gff \
-    --sjdbGTFfeatureExon CDS \
-    --sjdbGTFtagExonParentTranscript Parent \
-    --genomeFastaFiles Trucit1_1_AssemblyScaffolds.fasta
+time STAR --runThreadN 7 \
+--genomeDir input/Brapa_reference/Brapa_STAR_index \
+--readFilesIn input/Brapa_fastq/split_fq/IMB211_DP_1_SILIQUE.fq \
+--outFileNamePrefix output/STARout/IMB211_DP_1_SILIQUE.fq_ \
+--outSAMtype BAM SortedByCoordinate \
+--outBAMsortingThreadN 2 \
+--alignIntronMax 5000
 ```
 
 ## Differential Gene Expression
