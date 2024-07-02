@@ -27,8 +27,8 @@ knitr::opts_chunk$set(echo = TRUE)
 2.  Normalize the counts.
 3.  QC the counts.
 4.  Create a data frame that describes the experiment.
-5.  Determine the dispersion parameter (how over-dispersed is the data?) 
-6. Fit a statistical model for gene expression as a function of experimental parameters.
+5.  Determine the dispersion parameter (how over-dispersed is the data?)
+6.  Fit a statistical model for gene expression as a function of experimental parameters.
 7.  Test the significance of experimental parameters for explaining gene expression.
 8.  Examine result.
 
@@ -39,7 +39,11 @@ Programs needed: FASTQC, Trimmomatic, auto_barcode, STAR
 ### Index the Reference Genome
 
 ```{bash, eval = FALSE}
-#download a reference genome to the server first
+#download reference genome from personal computer
+scp /home/Users/britt/Downloads/Trucit1_1_AssemblyScaffolds.fasta.gz bklong@bogarprecision:/home/bklong/DemRNAanalysis/TRCIindex
+```
+
+```{bash, eval = FALSE}
 #make sure reference genome is unzipped
 gunzip -k Psme.1_0.fa.gz
 ```
@@ -115,6 +119,3 @@ htseq-count -s no -t CDS -i Parent \
 ../../assignment-09-jnmaloof/output/STAR_out-R500_INTERNODE_A03/R500_INTERNODE_Aligned_A03.bam \
 ../../assignment-09-jnmaloof/input/Brapa_reference/Brapa_gene_v1.5.gff > A03_counts.tsv
 ```
-
-
-
