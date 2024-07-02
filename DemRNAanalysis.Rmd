@@ -107,13 +107,17 @@ multiqc fastqc_out
 
 ```{bash, eval = FALSE}
 #modify this to be a for loop for all fastq files
-time STAR --runThreadN 7 \
---genomeDir input/Brapa_reference/Brapa_STAR_index \
---readFilesIn input/Brapa_fastq/split_fq/IMB211_DP_1_SILIQUE.fq \
---outFileNamePrefix output/STARout/IMB211_DP_1_SILIQUE.fq_ \
---outSAMtype BAM SortedByCoordinate \
---outBAMsortingThreadN 2 \
---alignIntronMax 5000
+#need to modify overhang parameter (max read length - 1)
+STAR \
+    --runThreadN 7 \
+    --runMode genomeGenerate \
+    --genomeDir TRCIindex \
+    --genomeSAindexNbases 12 \
+    --sjdbOverhang 93 \ 
+    --sjdbGTFfile Brapa_gene_v1.5.gff \
+    --sjdbGTFfeatureExon CDS \
+    --sjdbGTFtagExonParentTranscript Parent \
+    --genomeFastaFiles Trucit1_1_AssemblyScaffolds.fasta
 ```
 
 ## Differential Gene Expression
