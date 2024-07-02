@@ -47,6 +47,7 @@ $ scp -P 22345 /c/Users/britt/Documents/Trucit1_1_AssemblyScaffolds.fasta.gz bkl
 ```{bash, eval = FALSE}
 #make sure reference genome is unzipped
 gunzip -k Psme.1_0.fa.gz
+gunzip -k Trucit1_1_AssemblyScaffolds.fasta.gz
 ```
 
 ```{bash, eval = FALSE}
@@ -57,6 +58,14 @@ hisat2 -x /data/Genomes/HISAT2_index/Psme_1_0_index -1 /data/Test/DFD_001_T14_R1
 ~/programs/STAR-2.7.11b/bin/Linux_x86_64_static/STAR --runMode genomeGenerate \
            --genomeDir ~/DemRNAanalysis/PSMEindex \
            --genomeFastaFiles ~/DemRNAanalysis/genome/Psme.1_0.fa \
+           --runThreadN 4 \
+           --limitGenomeGenerateRAM 6425695398837
+```
+
+```{bash}
+~/programs/STAR-2.7.11b/bin/Linux_x86_64_static/STAR --runMode genomeGenerate \
+           --genomeDir ~/DemRNAanalysis/TRCIindex \
+           --genomeFastaFiles ~/DemRNAanalysis/TRCIindex/Trucit1_1_AssemblyScaffolds.fasta \
            --runThreadN 4 \
            --limitGenomeGenerateRAM 6425695398837
 ```
