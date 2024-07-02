@@ -40,7 +40,8 @@ Programs needed: FASTQC, Trimmomatic, auto_barcode, STAR
 
 ```{bash, eval = FALSE}
 #download reference genome from personal computer
-scp -P 22345 /c/Users/britt/Documents/Trucit1_1_AssemblyScaffolds.fasta.gz bklong@bogarprecision:~/DemRNAanalysis/TRCIindex
+#this code goes in the personal computer terminal
+$ scp -P 22345 /c/Users/britt/Documents/Trucit1_1_AssemblyScaffolds.fasta.gz bklong@bogarprecision.plb.ucdavis.edu:~/DemRNAanalysis/TRCIindex
 ```
 
 ```{bash, eval = FALSE}
