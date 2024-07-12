@@ -149,7 +149,66 @@ htseq-count -s no -t CDS -i Parent \
 
 #### (start here after bioinformatics core returns counts data)
 
+```{bash, eval = FALSE}
+#take a look at counts data
+head A03_counts.tsv #replace this file with what you get back from core
+```
+
+```{r}
+library(readr)
+counts.data <- read_tsv("../input/gh_internode_counts2.tsv") #assign counts data to an object
+```
+
+"You may have noticed that the first gene_id is labelled \"\*\". These are the reads that did not map to a gene. Let\'s remove this row from the data. Also let\'s replace any \"NA\" records with \"0\" because that is what NA means in this case."
+
+```{r}
+#change NAs to 0s
+
+library(tidyverse)
+
+counts.data <- counts.data %>% filter(gene_id!="*")
+counts.data[is.na(counts.data)] <- 0
+
+head(counts.data)
+```
+
+"The column names are too long. Use the `str_remove()` command to remove the ".1_matched.merged.fq.bam" suffix from each column name. Although it doesn't matter in this case, surrounding the "pattern" inside of the function `fixed()` would be a good idea, because "." is a wildcard character."
+
+```{r}
+#shorten column names
+library(stringr)
+
+colnames(counts.data) <- str_remove(colnames(counts.data), fixed(".1_matched.merged.fq.bam"))
+
+colnames(counts.data)
+```
+
 ```{r}
 #retain only the reads that were over 10 count in at least three samples
 counts.data <- counts.data[rowSums(counts.data[,-1] > 10) >= 3,]
 ```
+
+"We expect that read counts, especially from biological replicates, will be highly correlated. Check to see if this is the case using the `pairs()` function and the `cor()` function. Pairs should be applied to the (potentially log transformed) counts.data, NOT the correlation matrix."
+
+```{r}
+#the below code needs to be fixed
+counts_subset <- counts.data[, -which(names(counts.data) == "gene_id")]
+counts_subset <- counts_subset[1:1000, ]
+correlation <- cor(counts_subset)
+pairs(correlation)
+
+transformed_counts <- log2(counts_subset + 1) 
+transformed_correlation <- cor(transformed_counts)
+pairs(transformed_correlation)
+```
+
+"Once you have a correlation table, use the code provided to visualize it. Then, comment on the results from the pairs and correlation heatmap plots. Are the replicates more similar to each other than they are to other samples? Do you think there are any mistakes in the sample treatment labels?"
+
+```{r}
+rownames(cor.table) <- str_remove(rownames(cor.table), "_INTERNODE.*") #shorter names for better plotting
+colnames(cor.table) <- str_remove(colnames(cor.table), "_INTERNODE.*")
+
+cor.table %>% gplots::heatmap.2(dendrogram="row", trace = "none", col=viridis::viridis(25, begin=.25), margins=c(7,8))
+```
+
+Data Normalization:
