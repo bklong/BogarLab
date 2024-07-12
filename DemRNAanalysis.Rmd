@@ -159,7 +159,7 @@ library(readr)
 counts.data <- read_tsv("../input/gh_internode_counts2.tsv") #assign counts data to an object
 ```
 
-"You may have noticed that the first gene_id is labelled \"\*\". These are the reads that did not map to a gene. Let\'s remove this row from the data. Also let\'s replace any \"NA\" records with \"0\" because that is what NA means in this case."
+"You may have noticed that the first gene_id is labelled"\*". These are the reads that did not map to a gene. Let's remove this row from the data. Also let's replace any"NA" records with "0" because that is what NA means in this case."
 
 ```{r}
 #change NAs to 0s
@@ -172,7 +172,7 @@ counts.data[is.na(counts.data)] <- 0
 head(counts.data)
 ```
 
-"The column names are too long. Use the `str_remove()` command to remove the ".1_matched.merged.fq.bam" suffix from each column name. Although it doesn't matter in this case, surrounding the "pattern" inside of the function `fixed()` would be a good idea, because "." is a wildcard character."
+"The column names are too long. Use the `str_remove()` command to remove the".1_matched.merged.fq.bam" suffix from each column name. Although it doesn't matter in this case, surrounding the "pattern" inside of the function `fixed()` would be a good idea, because "." is a wildcard character."
 
 ```{r}
 #shorten column names
@@ -212,3 +212,75 @@ cor.table %>% gplots::heatmap.2(dendrogram="row", trace = "none", col=viridis::v
 ```
 
 Data Normalization:
+
+```{r}
+#make tibble with descriptions from counts data table
+sample.description <- tibble(sample=colnames(counts.data)[-1])
+
+head(sample.description)
+```
+
+make three more columns:
+
+1\.
+column "gt" that has either IMB211 or R500, indicating the genotype
+
+2\.
+column "trt" that indicates the treatment with either "C" or "T" (control or drought treatment)
+
+3\.
+column "group" that has gt and trt pasted together with "\_" as a separator.
+You can use `str_c()` and the "gt" and "trt" columns for this.
+
+```{r}
+library(dplyr)
+library(stringr)
+
+counts.data.new <- sample.description %>%
+  mutate(
+    gt = str_extract(sample, "(IMB211|R500)"),  
+    trt = str_extract(sample, "(NDP|DP)"),     
+    group = str_c(gt, trt, sep = "_")              
+  )
+
+head(counts.data.new)
+```
+
+```{r}
+counts.data.new <- counts.data.new %>%
+  mutate(gt=factor(gt), 
+         trt=factor(trt,levels = c("NDP","DP"))) # setting the levels in this way makes "NDP" the reference  
+
+counts.data.new
+```
+
+Normalization factors:
+
+```{r}
+library(edgeR)
+counts.matrix <- counts.data %>% select(-gene_id) %>% as.matrix()
+rownames(counts.matrix) <- counts.data$gene_id
+
+dge.data <- DGEList(counts=counts.matrix, 
+                    group=sample.description$group)
+dim(dge.data) 
+dge.data <- calcNormFactors(dge.data, method = "TMM")
+dge.data$samples # look at the normalization factors
+```
+
+Make an MDS plot:
+
+```{r}
+plotMDS(dge.data)
+```
+
+Make a nicer plot:
+
+```{r}
+mdsvals <- plotMDS(dge.data, plot = FALSE) # get the MDS values for plotting
+
+tibble(x=mdsvals$x, y=mdsvals$y, sample=rownames(dge.data$samples)) %>%
+  inner_join(sample.description) %>%
+  ggplot(aes(x=x, y=y, color=trt, shape=gt)) +
+  geom_point(size=3) 
+```
