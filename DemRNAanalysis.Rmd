@@ -374,3 +374,78 @@ plotDE(rownames(DEgene.gt)[1:9],dge.data,sample.description)
 ```
 
 Gene by Treatment Interaction
+
+```{r}
+design.interaction <- model.matrix(~gt*trt,data = counts.data.new)
+rownames(design.interaction) <- counts.data.new$sample
+design.interaction
+```
+
+```{r}
+#First the overall dispersion
+dge.data.interaction <- estimateGLMCommonDisp(dge.data,design.interaction,verbose = TRUE)
+
+#Then a trended dispersion based on count level
+dge.data.interaction <- estimateGLMTrendedDisp(dge.data,design.interaction)
+
+#And lastly we calculate the gene-wise dispersion, using the prior estimates to "squeeze" the dispersion towards the common dispersion.
+dge.data.interaction <- estimateGLMTagwiseDisp(dge.data,design.interaction)
+
+#We can examine this with a plot
+plotBCV(dge.data)
+```
+
+```{r}
+fit.interaction <- glmFit(dge.data.interaction, design.interaction)
+```
+
+```{r}
+gt.lrt.interaction <- glmLRT(fit.interaction,coef = "gtR500:trtDP")
+```
+
+```{r}
+topTags(gt.lrt.interaction) # the top 10 most differentially expressed genes
+```
+
+```{r}
+summary(decideTestsDGE(gt.lrt.interaction,p.value=0.01)) #This uses the FDR.  0.05 would be OK also.
+```
+
+```{r}
+#Extract genes with a FDR < 0.01 (could also use 0.05)
+DEgene.gt.interaction <- topTags(gt.lrt.interaction,n = Inf,p.value = 0.01)$table
+
+#save to a file
+write.csv(DEgene.gt.interaction,"../output/DEgenes.gt.interaction.csv")
+
+#Or if we want all genes, regardless of FDR:
+DEgene.gt.all.interaction <- topTags(gt.lrt.interaction,n = Inf, p.value = 1)$table
+#save to a file
+write.csv(DEgene.gt.all.interaction,"../output/DEgenes.gt.all.interaction.csv")
+```
+
+```{r}
+plotDE <- function(genes, dge, sample.description) {
+  require(ggplot2)
+  tmp.data <- t(log2(cpm(dge[genes,])+1))
+  tmp.data <- tmp.data %>%
+    as.data.frame() %>%
+    rownames_to_column("sample") %>%
+    left_join(sample.description,by="sample")
+  tmp.data <- tmp.data %>%
+    pivot_longer(cols=starts_with("Bra"), values_to = "log2_cpm", names_to = "gene")
+  pl <- ggplot(tmp.data,aes(x=gt,y=log2_cpm,fill=trt))
+  pl <- pl + facet_wrap( ~ gene)
+  pl <- pl + ylab("log2(cpm)") + xlab("genotype")
+  pl <- pl + geom_boxplot()
+  pl + theme(axis.text.x  = element_text(angle=45, vjust=1,hjust=1))
+}
+```
+
+```{r}
+# A single gene
+plotDE("Bra009785",dge.data.interaction,counts.data.new)
+
+#top 9 genes
+plotDE(rownames(DEgene.gt.interaction)[1:9],dge.data.interaction,counts.data.new)
+```
