@@ -284,3 +284,93 @@ tibble(x=mdsvals$x, y=mdsvals$y, sample=rownames(dge.data$samples)) %>%
   ggplot(aes(x=x, y=y, color=trt, shape=gt)) +
   geom_point(size=3) 
 ```
+
+Extract normalized data:
+
+```{r}
+counts.data.normal <- cpm(dge.data) 
+
+# or log2 transformed:
+counts.data.normal.log <- cpm(dge.data,log = TRUE)
+```
+
+Calculate dispersion factors:
+
+```{r}
+design <- model.matrix(~gt+trt,data = sample.description)
+rownames(design) <- sample.description$sample
+design
+```
+
+```{r}
+#First the overall dispersion
+dge.data <- estimateGLMCommonDisp(dge.data,design,verbose = TRUE)
+
+#Then a trended dispersion based on count level
+dge.data <- estimateGLMTrendedDisp(dge.data,design)
+
+#And lastly we calculate the gene-wise dispersion, using the prior estimates to "squeeze" the dispersion towards the common dispersion.
+dge.data <- estimateGLMTagwiseDisp(dge.data,design)
+
+#We can examine this with a plot
+plotBCV(dge.data)
+```
+
+Find Differentially Expressed Genes:
+
+```{r}
+fit <- glmFit(dge.data, design)
+```
+
+```{r}
+gt.lrt <- glmLRT(fit,coef = "gtR500")
+```
+
+```{r}
+topTags(gt.lrt) # the top 10 most differentially expressed genes
+```
+
+```{r}
+summary(decideTestsDGE(gt.lrt,p.value=0.01)) #This uses the FDR.  0.05 would be OK also.
+```
+
+```{r}
+#Extract genes with a FDR < 0.01 (could also use 0.05)
+DEgene.gt <- topTags(gt.lrt,n = Inf,p.value = 0.01)$table
+
+#save to a file
+write.csv(DEgene.gt,"../output/DEgenes.gt.csv")
+
+#Or if we want all genes, regardless of FDR:
+DEgene.gt.all <- topTags(gt.lrt,n = Inf, p.value = 1)$table
+#save to a file
+write.csv(DEgene.gt.all,"../output/DEgenes.gt.all.csv")
+```
+
+```{r}
+plotDE <- function(genes, dge, sample.description) {
+  require(ggplot2)
+  tmp.data <- t(log2(cpm(dge[genes,])+1))
+  tmp.data <- tmp.data %>%
+    as.data.frame() %>%
+    rownames_to_column("sample") %>%
+    left_join(sample.description,by="sample")
+  tmp.data <- tmp.data %>%
+    pivot_longer(cols=starts_with("Bra"), values_to = "log2_cpm", names_to = "gene")
+  pl <- ggplot(tmp.data,aes(x=gt,y=log2_cpm,fill=trt))
+  pl <- pl + facet_wrap( ~ gene)
+  pl <- pl + ylab("log2(cpm)") + xlab("genotype")
+  pl <- pl + geom_boxplot()
+  pl + theme(axis.text.x  = element_text(angle=45, vjust=1,hjust=1))
+}
+```
+
+```{r}
+# A single gene
+plotDE("Bra009785",dge.data,sample.description)
+
+#top 9 genes
+plotDE(rownames(DEgene.gt)[1:9],dge.data,sample.description)
+```
+
+Gene by Treatment Interaction
