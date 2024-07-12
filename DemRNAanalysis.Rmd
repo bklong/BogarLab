@@ -449,3 +449,17 @@ plotDE("Bra009785",dge.data.interaction,counts.data.new)
 #top 9 genes
 plotDE(rownames(DEgene.gt.interaction)[1:9],dge.data.interaction,counts.data.new)
 ```
+
+Next Steps:
+
+Now that we know which genes are differentially expressed by their ID, what follow up questions would we like to pursue?
+
+1.  What types of genes are differentially expressed?
+    This can be asked at the individual gene level and also at the group level
+
+2.  What patterns of differential expression do we observe in our data?
+
+3.  Are there any common promoter motifs among the differentially expressed genes?
+    Such motifs could allow us to form testable hypotheses about the transcription factors responsible for the differential expression.
+
+GO Analysis
