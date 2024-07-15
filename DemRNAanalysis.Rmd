@@ -569,3 +569,7 @@ Cut and paste the GO terms and p-values into REVIGO.
 
 Use <http://revigo.irb.hr/> (REVIGO) to visualize enrichment.
 (use website)
+
+Clustering (Assignment 12)
+
+Co-Expression (Assignment 13)
