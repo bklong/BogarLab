@@ -479,7 +479,7 @@ colnames(DEgene.trt)[1] <- "GeneID"
 head(DEgene.trt)
 ```
 
-"Import the gene descriptions that you downloaded (File S9, above); pay attention to the `read_tsv`\"col_names\" argument. What is appropriate here? Use one of the `join()` functions (which one?) to add gene descriptions for the genes found to be regulated by the NDP/DP treatment. Output a table of the top **10** genes (based on FDR) that includes the output from edgeR and the descriptions. Have the description be the first (left-most) column so that you can see it in the output (*Hint: use tidyverse `select`, but be sure to keep the other columns*)."
+"Import the gene descriptions that you downloaded (File S9, above); pay attention to the `read_tsv`"col_names" argument. What is appropriate here? Use one of the `join()` functions (which one?) to add gene descriptions for the genes found to be regulated by the NDP/DP treatment. Output a table of the top **10** genes (based on FDR) that includes the output from edgeR and the descriptions. Have the description be the first (left-most) column so that you can see it in the output (*Hint: use tidyverse `select`, but be sure to keep the other columns*)."
 
 ```{r}
 gene_descriptions <- read_tsv("../input/FileS9.txt", col_names = c("GeneID", "description"))
@@ -599,6 +599,156 @@ brass_voom_E$cv  <- apply(brass_voom_E[,-1], 1, calc.cv)
 brass_voom_E <- brass_voom_E %>%  select(GeneID, cv, everything()) # reorder columns
 
 head(brass_voom_E[,1:6])
+```
+
+```{r}
+brass_voom_E_1000 <- brass_voom_E %>%
+  slice_max(order_by = cv, n = 1000)
+
+head(brass_voom_E_1000[, 1:6])
+```
+
+```{r}
+E_matrix <- brass_voom_E_1000 %>% 
+  select(-GeneID, -cv) %>% 
+  as.matrix() %>% 
+  scale()
+```
+
+```{r}
+gene_hclust_row <- E_matrix %>% dist() %>% hclust()
+ggdendrogram(gene_hclust_row)
+```
+
+```{r}
+gene_hclust_col <- E_matrix %>% t()  %>% dist() %>% hclust()
+ggdendrogram(gene_hclust_col)
+```
+
+```{r}
+plot(gene_hclust_col, cex=.6) #redraw the tree everytime before adding the rectangles
+rect.hclust(gene_hclust_col, k = 6, border = "red")
+```
+
+```{r}
+library(pvclust)
+
+set.seed(12456) #This ensure that we will have consistent results with one another
+
+fit <- pvclust(E_matrix, method.hclust = "ward.D", method.dist = "euclidean", nboot = 1000)
+plot(fit, print.num=FALSE)
+```
+
+```{r}
+heatmap.2(E_matrix, Rowv = as.dendrogram(gene_hclust_row),  density.info="none", trace="none", margins = c(10,5))
+```
+
+K-Means Clustering:
+
+```{r}
+# you do not have to run this code chunk
+# library(animation) 
+
+# kmeans.ani(x = cbind(X1 = runif(50), X2 = runif(50)), centers = 3,
+# hints = c("Move centers!", "Find cluster?"), pch = 1:3, col = 1:3)
+
+# kmeans.ani(x = cbind(X1 = runif(50), X2 = runif(50)), centers = 10,
+# hints = c("Move centers!", "Find cluster?"), pch = 1:3, col = 1:3)
+
+# kmeans.ani(x = cbind(X1 = runif(50), X2 = runif(50)), centers = 5,
+# hints = c("Move centers!", "Find cluster?"), pch = 1:3, col = 1:3)
+```
+
+```{r}
+library(ggplot2)
+
+# get principle components
+prcomp_counts <- prcomp(E_matrix) 
+scores <- as.data.frame(prcomp_counts$x)[,c(1,2)]
+
+set.seed(25) #make this repeatable as kmeans has random starting positions
+fit <- kmeans(E_matrix, 9)
+clus <- as.data.frame(fit$cluster)
+names(clus) <- paste("cluster")
+
+plotting <- merge(clus, scores, by = "row.names")
+plotting$cluster <- as.factor(plotting$cluster)
+
+# plot of observations
+ggplot(data = plotting, aes(x = PC1, y = PC2, label = Row.names, color = cluster)) +
+  geom_hline(yintercept = 0, colour = "gray65") +
+  geom_vline(xintercept = 0, colour = "gray65") +
+  geom_point(alpha = 0.8, size = 2, stat = "identity") 
+```
+
+```{r}
+library(cluster)
+set.seed(125)
+gap <- clusGap(E_matrix, FUN = kmeans, iter.max = 30, K.max = 20, B = 100)
+plot(gap, main = "Gap Statistic")
+```
+
+```{r}
+with(gap, maxSE(Tab[,"gap"], Tab[,"SE.sim"], method="firstSEmax"))
+```
+
+```{r}
+library(ggplot2)
+
+# get principle components
+prcomp_counts <- prcomp(E_matrix) 
+scores <- as.data.frame(prcomp_counts$x)[,c(1,2)]
+
+set.seed(25) #make this repeatable as kmeans has random starting positions
+fit <- kmeans(E_matrix, 8)
+clus <- as.data.frame(fit$cluster)
+names(clus) <- paste("cluster")
+
+plotting <- merge(clus, scores, by = "row.names")
+plotting$cluster <- as.factor(plotting$cluster)
+
+# plot of observations
+ggplot(data = plotting, aes(x = PC1, y = PC2, label = Row.names, color = cluster)) +
+  geom_hline(yintercept = 0, colour = "gray65") +
+  geom_vline(xintercept = 0, colour = "gray65") +
+  geom_point(alpha = 0.8, size = 2, stat = "identity") 
+
+set.seed(25) #make this repeatable as kmeans has random starting positions
+fit <- kmeans(E_matrix, 7)
+clus <- as.data.frame(fit$cluster)
+names(clus) <- paste("cluster")
+
+plotting <- merge(clus, scores, by = "row.names")
+plotting$cluster <- as.factor(plotting$cluster)
+
+# plot of observations
+ggplot(data = plotting, aes(x = PC1, y = PC2, label = Row.names, color = cluster)) +
+  geom_hline(yintercept = 0, colour = "gray65") +
+  geom_vline(xintercept = 0, colour = "gray65") +
+  geom_point(alpha = 0.8, size = 2, stat = "identity") 
+```
+
+```{r}
+set.seed(25) #make this repeatable as kmeans has random starting positions
+fit8 <- kmeans(E_matrix, 8)
+clus8 <- as.data.frame(fit8$cluster)
+names(clus8) <- paste("cluster")
+
+clus8 <- cbind(clus8, E_matrix) %>% # add cluster labels to gene expression matrix
+  mutate(gene_index=1:nrow(clus8)) # would be better to bring in gene names but OK for now.
+
+clus8 <- clus8 %>% pivot_longer(c(-cluster, -gene_index), names_to = "sample_ID", values_to = "expression") %>% # get ready for plotting
+  mutate("sample_group" = str_remove(sample_ID, "_.$"))
+
+clus_summary <- clus8 %>% # average across replicates
+  group_by(gene_index, cluster, sample_group) %>%
+  summarize(expression = mean(expression))
+
+clus_summary %>% ggplot(aes(x=sample_group, y=expression, group=gene_index)) + # plot it
+  geom_line(alpha=.05) +
+  facet_wrap(~cluster, ncol=4) +
+  coord_fixed(ratio=1) +
+  theme(axis.text.x = element_text(angle = 90, size = 7, hjust = 1, vjust = 0))
 ```
 
 Co-Expression (Assignment 13)
