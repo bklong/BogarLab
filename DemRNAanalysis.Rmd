@@ -572,4 +572,33 @@ Use <http://revigo.irb.hr/> (REVIGO) to visualize enrichment.
 
 Clustering (Assignment 12)
 
+```{r}
+library(tidyverse)
+library(ggdendro)
+```
+
+```{r}
+# make sure to change the path to where you downloaded this using wget
+brass_voom_E <- read_csv("../input/voom_transform_brassica.csv.gz")
+head(brass_voom_E[,1:6])
+```
+
+calculate the [coefficient of variation](https://en.wikipedia.org/wiki/Coefficient_of_variation) for each gene:
+
+```{r}
+calc.cv <- function(x, na.rm=TRUE) { # function to calculate the coefficient of variation
+  if(na.rm==TRUE) x <- na.omit(x)
+  result <- sd(x) / mean(x) # CV calculation
+  result <- abs(result) # no negative CVs!
+  return(result)
+}
+
+#Doing this with base R because tidy is slow on row-wise calculations
+brass_voom_E$cv  <- apply(brass_voom_E[,-1], 1, calc.cv)
+
+brass_voom_E <- brass_voom_E %>%  select(GeneID, cv, everything()) # reorder columns
+
+head(brass_voom_E[,1:6])
+```
+
 Co-Expression (Assignment 13)
