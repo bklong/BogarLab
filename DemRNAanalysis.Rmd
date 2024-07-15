@@ -752,3 +752,185 @@ clus_summary %>% ggplot(aes(x=sample_group, y=expression, group=gene_index)) + #
 ```
 
 Co-Expression (Assignment 13)
+
+```{r}
+# make sure to change the path if needed
+trt.genes <- read_csv("../input/DEgenes.trt.csv") 
+
+
+# make sure to change the path to where you downloaded this using wget
+brass_voom_E <- read_csv("../input/voom_transform_brassica.csv.gz") %>%
+  select(GeneID, matches("INTERNODE|PETIOLE|LEAF")) # subset the data to only keep the columns we want
+head(brass_voom_E[,1:6])
+```
+
+```{r}
+brass_voom_E_trt <- brass_voom_E %>%
+  semi_join(trt.genes)
+```
+
+```{r}
+E_matrix_trt <- brass_voom_E_trt %>%
+  as.data.frame() %>%
+  column_to_rownames("GeneID") %>%
+  as.matrix()
+```
+
+```{r}
+annotation <- read_tsv("../input/FileS9.txt",col_names = c("GeneID","description"))
+```
+
+Calculate mutual ranks:
+
+```{r}
+E_matrix_cor <- cor(t(E_matrix_trt))
+E_matrix_cor %>% round(3)
+
+diag(E_matrix_cor) <- 0
+E_matrix_cor %>% round(3)
+
+E_matrix_rank <- apply(E_matrix_cor,2,function(x) rank(-abs(x)))
+E_matrix_rank
+
+E_matrix_MR <- sqrt(E_matrix_rank * t(E_matrix_rank))
+E_matrix_MR %>% round(3)
+
+genes_adj_MR4 <- E_matrix_MR <= 4
+diag(genes_adj_MR4) <- 0 
+genes_adj_MR4
+
+genes_adj_MR10 <- E_matrix_MR <= 10
+diag(genes_adj_MR10) <- 0 
+genes_adj_MR10
+```
+
+```{r}
+num_edges_MR4 <- sum(genes_adj_MR4) / 2  
+num_edges_MR10 <- sum(genes_adj_MR10) / 2
+
+num_edges_MR4
+num_edges_MR10
+```
+
+```{r}
+gene_graphMR4 <- graph.adjacency(genes_adj_MR4, mode = "undirected") #convert adjacency to graph
+compsMR4 <- clusters(gene_graphMR4)$membership                        #define gene cluster membership
+colbar <- rainbow(max(compsMR4)+1)                                   #define colors
+V(gene_graphMR4)$color <- colbar[compsMR4+1]                          #assign colors to nodes
+plot(gene_graphMR4, layout = layout_with_fr, vertex.size = 4, vertex.label = NA, main="MR 4")
+  
+gene_graphMR10 <- graph.adjacency(genes_adj_MR10, mode = "undirected") #convert adjacency to graph
+compsMR10 <- clusters(gene_graphMR10)$membership                        #define gene cluster membership
+colbar <- rainbow(max(compsMR10)+1)                                   #define colors
+V(gene_graphMR10)$color <- colbar[compsMR10+1]                          #assign colors to nodes
+plot(gene_graphMR10, layout = layout_with_fr, vertex.size = 4, vertex.label = NA, main="MR 10")
+```
+
+```{r}
+graph_MR4 <- graph_from_adjacency_matrix(genes_adj_MR4, mode = "undirected")
+graph_MR10 <- graph_from_adjacency_matrix(genes_adj_MR10, mode = "undirected")
+
+density_MR4 <- graph.density(graph_MR4)
+density_MR10 <- graph.density(graph_MR10)
+
+avg_path_length_MR4 <- average.path.length(graph_MR4, unconnected = TRUE)
+avg_path_length_MR10 <- average.path.length(graph_MR10, unconnected = TRUE)
+
+density_MR4
+density_MR10
+avg_path_length_MR4
+avg_path_length_MR10
+```
+
+```{r}
+colSums(genes_adj_MR4) %>%
+  sort(decreasing = TRUE) %>%
+  tibble(GeneID=names(.), degree=.) %>%
+  left_join(annotation) %>% head()
+```
+
+```{r}
+betweenness_centrality <- betweenness(graph_MR4, directed = FALSE)
+
+max_betweenness_gene <- names(betweenness_centrality)[which.max(betweenness_centrality)]
+max_betweenness_value <- max(betweenness_centrality)
+gene_function <- annotation$description[annotation$GeneID == max_betweenness_gene]
+
+max_betweenness_gene
+max_betweenness_value
+gene_function
+```
+
+```{r}
+gene_graphMR4 <- graph.adjacency(genes_adj_MR4, mode = "undirected")
+
+main.cluster <- which.max(clusters(gene_graphMR4)$csize) # find the largest cluster based on size
+non.main.vertices <- clusters(gene_graphMR4)$membership %>% # get membership for each gene
+  magrittr::extract(. != main.cluster) %>%                  # remove genes in the main cluster from the list
+  names()                                                   # the result is a list of the genes that are not in the main cluster
+
+gene_graphMR4 <- delete.vertices(gene_graphMR4, non.main.vertices)
+
+V(gene_graphMR4)$size <- 2                               # define default node size
+V(gene_graphMR4)["Bra023998"]$color <- "cornflowerblue"  # define highlight node color
+V(gene_graphMR4)["Bra023998"]$size <- 6                 # define highlight node size
+
+plot(gene_graphMR4, layout=layout_with_mds, vertex.label = NA)
+```
+
+```{r}
+gene_graphMR4 <- graph.adjacency(genes_adj_MR4, mode = "undirected")
+
+main.cluster <- which.max(clusters(gene_graphMR4)$csize)
+non.main.vertices <- clusters(gene_graphMR4)$membership %>%
+  magrittr::extract(. != main.cluster) %>%
+  names()
+
+gene_graphMR4 <- delete.vertices(gene_graphMR4, non.main.vertices)
+
+distMatrix <- shortest.paths(gene_graphMR4, v = V(gene_graphMR4), to = V(gene_graphMR4))
+head(distMatrix)[,1:7]
+
+gene1 <- match("Bra007662", rownames(distMatrix)) 
+gene2 <- match("Bra036631", rownames(distMatrix)) 
+
+pl <- get.shortest.paths(gene_graphMR4, gene1, gene2)$vpath[[1]] # pull paths between node 132 and 45
+
+V(gene_graphMR4)[pl]$color <- "green"                 # define highlight node color
+E(gene_graphMR4)$color <- "grey"                      # define default edge color
+E(gene_graphMR4, path = pl)$color <- "blue"           # define highlight edge color
+E(gene_graphMR4)$width <- 1                           # define default edge width
+E(gene_graphMR4, path = pl)$width <- 7               # define highlight edge width
+plot(gene_graphMR4, layout = layout_with_fr, vertex.size = 5, vertex.label = NA)
+
+```
+
+```{r}
+gene_graphMR4 <- graph.adjacency(genes_adj_MR4, mode = "undirected")
+
+main.cluster <- which.max(clusters(gene_graphMR4)$csize) # find the largest cluster based on size
+non.main.vertices <- clusters(gene_graphMR4)$membership %>% # get membership for each gene
+  magrittr::extract(. != main.cluster) %>%                  # remove genes in the main cluster from the list
+  names()                                                   # the result is a list of the genes that are not in the main cluster
+
+gene_graphMR4 <- delete.vertices(gene_graphMR4, non.main.vertices)
+
+betweenness_centrality <- betweenness(gene_graphMR4, directed = FALSE)
+max_betweenness_gene <- names(betweenness_centrality)[which.max(betweenness_centrality)]
+centrality <- closeness(gene_graphMR4)
+max_centrality <- names(centrality)[which.max(centrality)]
+
+max_betweenness_gene
+max_centrality
+```
+
+```{r}
+V(gene_graphMR4)$size <- 2
+V(gene_graphMR4)$color <- "lightgray"  
+V(gene_graphMR4)["Bra007921"]$color <- "purple" 
+V(gene_graphMR4)["Bra036631"]$color <- "orange"
+V(gene_graphMR4)["Bra007921"]$size <- 6
+V(gene_graphMR4)["Bra036631"]$size <- 6
+
+plot(gene_graphMR4, layout=layout_with_mds, vertex.label = NA)
+```
