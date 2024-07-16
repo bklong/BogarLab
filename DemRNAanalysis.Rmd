@@ -445,13 +445,21 @@ plotDE("Bra009785",dge.data,sample.description)
 plotDE(rownames(DEgene.gt)[1:9],dge.data,sample.description)
 ```
 
-Gene by Treatment Interaction
+**Gene by Treatment Interaction**
+
+Treatments have effects on treatments.
+One species of fungus may express genes in response to drought differently than a different species of fungus with the same drought treatment.
+We can find the genes that change in expression in this way by making a new model that includes this interaction of treatments.
+
+Make the new model:
 
 ```{r}
 design.interaction <- model.matrix(~gt*trt,data = counts.data.new)
 rownames(design.interaction) <- counts.data.new$sample
 design.interaction
 ```
+
+Now using the new model, do the same steps that we did before to find differentially expressed genes:
 
 ```{r}
 #First the overall dispersion
@@ -496,6 +504,9 @@ DEgene.gt.all.interaction <- topTags(gt.lrt.interaction,n = Inf, p.value = 1)$ta
 write.csv(DEgene.gt.all.interaction,"../output/DEgenes.gt.all.interaction.csv")
 ```
 
+We already made the function "plotDE"...I need to double check that the below chunk of code doesn't need to be changed for an interaction model.
+It seems like it doesn't.
+
 ```{r}
 plotDE <- function(genes, dge, sample.description) {
   require(ggplot2)
@@ -513,6 +524,8 @@ plotDE <- function(genes, dge, sample.description) {
   pl + theme(axis.text.x  = element_text(angle=45, vjust=1,hjust=1))
 }
 ```
+
+Use plotDE to plot gene expression just like we did for the non-interaction model:
 
 ```{r}
 # A single gene
