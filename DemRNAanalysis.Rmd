@@ -280,7 +280,10 @@ counts.data.new <- counts.data.new %>%
 counts.data.new
 ```
 
-Normalization factors:
+Calculate Normalization factors:
+
+EdgeR wants numeric data, so we must convert it first.
+Then we calculate normalization factors using TTM method.
 
 ```{r}
 library(edgeR)
@@ -294,13 +297,16 @@ dge.data <- calcNormFactors(dge.data, method = "TMM")
 dge.data$samples # look at the normalization factors
 ```
 
+We can now make an MDS plot to visualize how similar/different our samples our in gene expression.
+THIS is the bare minimum we should accomplish and put on the poster, but ideally we will dive further into analysis depending on how much time we have.
+
 Make an MDS plot:
 
 ```{r}
 plotMDS(dge.data)
 ```
 
-Make a nicer plot:
+Make a nicer MDS plot:
 
 ```{r}
 mdsvals <- plotMDS(dge.data, plot = FALSE) # get the MDS values for plotting
