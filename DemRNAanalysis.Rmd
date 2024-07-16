@@ -672,8 +672,10 @@ library(tidyverse)
 library(ggdendro)
 ```
 
+load data into R:
+
 ```{r}
-# make sure to change the path to where you downloaded this using wget
+# make sure to change the path as necessary
 brass_voom_E <- read_csv("../input/voom_transform_brassica.csv.gz")
 head(brass_voom_E[,1:6])
 ```
@@ -696,12 +698,18 @@ brass_voom_E <- brass_voom_E %>%  select(GeneID, cv, everything()) # reorder col
 head(brass_voom_E[,1:6])
 ```
 
+make dataframe with 1000 most variable genes:
+
 ```{r}
 brass_voom_E_1000 <- brass_voom_E %>%
   slice_max(order_by = cv, n = 1000)
 
 head(brass_voom_E_1000[, 1:6])
 ```
+
+Scale and center the data so that each gene has a mean of 0 and a standard deviation of 1.
+This prevents genes with high expression from having an undue influence on our results.
+We will also convert the data frame to a matrix since many of the downstream functions require our data to be in that form:
 
 ```{r}
 E_matrix <- brass_voom_E_1000 %>% 
@@ -710,20 +718,21 @@ E_matrix <- brass_voom_E_1000 %>%
   scale()
 ```
 
-```{r}
-gene_hclust_row <- E_matrix %>% dist() %>% hclust()
-ggdendrogram(gene_hclust_row)
-```
+Calculate distance and then visually show the distance with a hierarchical tree visualization:
 
 ```{r}
 gene_hclust_col <- E_matrix %>% t()  %>% dist() %>% hclust()
 ggdendrogram(gene_hclust_col)
 ```
 
+Now make another tree but with sub-clusters:
+
 ```{r}
 plot(gene_hclust_col, cex=.6) #redraw the tree everytime before adding the rectangles
 rect.hclust(gene_hclust_col, k = 6, border = "red")
 ```
+
+\-\--
 
 ```{r}
 library(pvclust)
