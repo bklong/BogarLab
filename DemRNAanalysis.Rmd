@@ -149,6 +149,17 @@ htseq-count -s no -t CDS -i Parent \
 
 #### (start here after bioinformatics core returns counts data)
 
+**Basic steps for DGE Analysis:**
+
+1.  Load the RNAseq counts.
+2.  Normalize the counts.
+3.  QC the counts.
+4.  Create a data frame that describes the experiment.
+5.  Determine the dispersion parameter (how over-dispersed is the data?)
+6.  Fit a statistical model for gene expression as a function of experimental parameters.
+7.  Test the significance of experimental parameters for explaining gene expression.
+8.  Examine result.
+
 ```{bash, eval = FALSE}
 #take a look at counts data
 head A03_counts.tsv #replace this file with what you get back from core
