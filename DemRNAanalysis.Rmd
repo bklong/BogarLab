@@ -149,7 +149,7 @@ htseq-count -s no -t CDS -i Parent \
 
 #### (start here after bioinformatics core returns counts data)
 
-**Basic steps for DGE Analysis:**
+**Basic steps for DGE Analysis (Adapted from Assignment 10 BIS180L):**
 
 1.  Load the RNAseq counts.
 2.  Normalize the counts.
@@ -177,7 +177,7 @@ counts.data <- read_tsv("../input/gh_internode_counts2.tsv") #assign counts data
 "You may have noticed that the first gene_id is labelled"\*". These are the reads that did not map to a gene. Let's remove this row from the data. Also let's replace any"NA" records with "0" because that is what NA means in this case."
 
 ```{r}
-#change NAs to 0s
+#remove gene IDs labeled "*" and change NAs to 0s 
 
 library(tidyverse)
 
@@ -226,7 +226,16 @@ colnames(cor.table) <- str_remove(colnames(cor.table), "_INTERNODE.*")
 cor.table %>% gplots::heatmap.2(dendrogram="row", trace = "none", col=viridis::viridis(25, begin=.25), margins=c(7,8))
 ```
 
-Data Normalization:
+**2. Normalize the counts.**
+
+We will use TTM normalization.
+
+We need to tell EdgeR what groups our samples belong to.
+In order to do this we'll make a dataframe with our treatments and treatment combos.
+(drought treatment, inoculation treatment, and combination of both)
+
+At this step, I MAY need to make two separate dataframes for the fungal data and tree data.
+We will see.
 
 ```{r}
 #make tibble with descriptions from counts data table
@@ -238,14 +247,16 @@ head(sample.description)
 make three more columns:
 
 1\.
-column "gt" that has either IMB211 or R500, indicating the genotype
+column "sp" that has TC, TCR, or NM, indicating the inoculation treatment.
+TC is Trunocolumella citrina only, TCR is T.
+citrina and Rhizopogon both, and NM is control (no inoculation/non-mycorrhizal).
 
 2\.
 column "trt" that indicates the treatment with either "C" or "T" (control or drought treatment)
 
 3\.
-column "group" that has gt and trt pasted together with "\_" as a separator.
-You can use `str_c()` and the "gt" and "trt" columns for this.
+column "group" that has sp and trt pasted together with "\_" as a separator.
+You can use `str_c()` and the "sp" and "trt" columns for this.
 
 ```{r}
 library(dplyr)
@@ -253,9 +264,9 @@ library(stringr)
 
 counts.data.new <- sample.description %>%
   mutate(
-    gt = str_extract(sample, "(IMB211|R500)"),  
+    sp = str_extract(sample, "(IMB211|R500)"),  
     trt = str_extract(sample, "(NDP|DP)"),     
-    group = str_c(gt, trt, sep = "_")              
+    group = str_c(sp, trt, sep = "_")              
   )
 
 head(counts.data.new)
