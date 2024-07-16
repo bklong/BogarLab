@@ -226,7 +226,7 @@ colnames(cor.table) <- str_remove(colnames(cor.table), "_INTERNODE.*")
 cor.table %>% gplots::heatmap.2(dendrogram="row", trace = "none", col=viridis::viridis(25, begin=.25), margins=c(7,8))
 ```
 
-**2. Normalize the counts.**
+**2. Normalize the counts and 3. QC the counts and 4. Make dataframe.**
 
 We will use TTM normalization.
 
@@ -319,6 +319,9 @@ tibble(x=mdsvals$x, y=mdsvals$y, sample=rownames(dge.data$samples)) %>%
 
 Extract normalized data:
 
+I'm still not sure why we would log transform the normalized data or not.
+Here is how we extract the normalized data either way.
+
 ```{r}
 counts.data.normal <- cpm(dge.data) 
 
@@ -326,10 +329,15 @@ counts.data.normal <- cpm(dge.data)
 counts.data.normal.log <- cpm(dge.data,log = TRUE)
 ```
 
+**5. Determine the dispersion parameter (how over-dispersed is the data?)**
+
 Calculate dispersion factors:
 
+First we tell EdgeR what our experimental design was.
+Then, the dispersions.
+
 ```{r}
-design <- model.matrix(~gt+trt,data = sample.description)
+design <- model.matrix(~sp+trt,data = sample.description)
 rownames(design) <- sample.description$sample
 design
 ```
@@ -348,23 +356,49 @@ dge.data <- estimateGLMTagwiseDisp(dge.data,design)
 plotBCV(dge.data)
 ```
 
-Find Differentially Expressed Genes:
+**6. Fit a statistical model for gene expression as a function of experimental parameters.**
+
+To find differentially expressed genes, we basically make linear models for the data that have more or less coefficients.
+(We compare the full model, with all coefficients, with a model that has one or more coefficients dropped to look at the difference between them.)
 
 ```{r}
+#this is the full model with all coefficients
 fit <- glmFit(dge.data, design)
 ```
 
 ```{r}
+#this model looks at genes differentially expressed in genotype R500 versus the other genotype
 gt.lrt <- glmLRT(fit,coef = "gtR500")
 ```
 
+**7. Test the significance of experimental parameters for explaining gene expression.**
+
 ```{r}
-topTags(gt.lrt) # the top 10 most differentially expressed genes
+topTags(gt.lrt) # the top 10 most differentially expressed genes between the two genotypes (using the above model)
 ```
+
+In the resulting table from using topTags,
+
+-   logFC is the log2 fold-change in expression between R500 and IMB211.
+    So a logFC of 2 indicates that the gene is expressed 4 times higher in R500; a logFC of -3 indicates that it is 8 times lower in R500.
+
+-   logCPM is the average expression across all samples.
+
+-   LR is the likelihood ratio: L(Full model) / L(small model) .
+
+-   PValue: unadjusted p-value
+
+-   FDR: False discovery rate (p-value adjusted for multiple testing...this is the one to use)
+
+To summarize:
 
 ```{r}
 summary(decideTestsDGE(gt.lrt,p.value=0.01)) #This uses the FDR.  0.05 would be OK also.
 ```
+
+In the table resulting from decideTestsDGE, the Down row is the number of down regulated genes in R500 relative to IMB211 and the Up row is the number of up regulated genes.
+
+If we want to create a table of all differentially expressed genes at a given FDR, then:
 
 ```{r}
 #Extract genes with a FDR < 0.01 (could also use 0.05)
@@ -378,6 +412,10 @@ DEgene.gt.all <- topTags(gt.lrt,n = Inf, p.value = 1)$table
 #save to a file
 write.csv(DEgene.gt.all,"../output/DEgenes.gt.all.csv")
 ```
+
+**8. Examine the result.**
+
+Define a function to make a bar graph of genes of interest:
 
 ```{r}
 plotDE <- function(genes, dge, sample.description) {
@@ -396,6 +434,8 @@ plotDE <- function(genes, dge, sample.description) {
   pl + theme(axis.text.x  = element_text(angle=45, vjust=1,hjust=1))
 }
 ```
+
+Use the function plotDE to plot a single gene of interest or the top 9 genes expressed etc:
 
 ```{r}
 # A single gene
