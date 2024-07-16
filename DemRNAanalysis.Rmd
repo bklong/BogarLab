@@ -547,7 +547,7 @@ Now that we know which genes are differentially expressed by their ID, what foll
 3.  Are there any common promoter motifs among the differentially expressed genes?
     Such motifs could allow us to form testable hypotheses about the transcription factors responsible for the differential expression.
 
-GO Enrichment Analysis (Assignment 11 from 180L)
+**GO Enrichment Analysis (Assignment 11 from 180L)**
 
 ```{r}
 library(tidyverse)
@@ -557,6 +557,8 @@ library(GenomicRanges)
 library(Biostrings)
 ```
 
+Read in the DE gene list you made and give the list an informative column name.
+
 ```{r}
 DEgene.trt <- read_csv("../input/DEgenes.trt.csv")
 head(DEgene.trt)
@@ -565,6 +567,8 @@ head(DEgene.trt)
 ```
 
 "Import the gene descriptions that you downloaded (File S9, above); pay attention to the `read_tsv`"col_names" argument. What is appropriate here? Use one of the `join()` functions (which one?) to add gene descriptions for the genes found to be regulated by the NDP/DP treatment. Output a table of the top **10** genes (based on FDR) that includes the output from edgeR and the descriptions. Have the description be the first (left-most) column so that you can see it in the output (*Hint: use tidyverse `select`, but be sure to keep the other columns*)."
+
+Make a dataframe that includes the genes differentially expressed in response to NDP/DP treatment and the descriptions of those genes:
 
 ```{r}
 gene_descriptions <- read_tsv("../input/FileS9.txt", col_names = c("GeneID", "description"))
@@ -578,6 +582,8 @@ genes <- left_join(DEgene.trt, gene_descriptions, by = "GeneID")
 genes
 ```
 
+Make a dataframe that includes only the top 10 genes from the dataframe you just made based off of their FDR values:
+
 ```{r}
 top_10_genes <- genes %>% 
   arrange(FDR) %>% 
@@ -587,7 +593,9 @@ top_10_genes <- genes %>%
 top_10_genes
 ```
 
-assign data to objects:
+GO Enrichment
+
+assign relevant data to objects:
 
 ```{r}
 go.terms <- read_tsv("../input/FileS11.txt",col_names=FALSE)
@@ -611,7 +619,7 @@ head(gene.lengths.vector)
 expressed.genes.match <- expressed.genes[expressed.genes$GeneID %in% names(gene.lengths.vector),]
 ```
 
-formatting data:
+format the data in preparation for enrichment analysis:
 
 ```{r}
 go.list <- strsplit(go.terms$GO,split=",")
@@ -630,7 +638,7 @@ head(DE.trt)
 sum(DE.trt) # number of DE genes
 ```
 
-calculate over-representation:
+calculate over-representation (this is the actual enrichment analysis):
 
 ```{r}
 #determines if there is bias due to gene length.  The plot shows the relationship.
@@ -646,16 +654,18 @@ GO.out[GO.out$over_represented_pvalue < 0.05,]
 
 GO Visualization
 
+Make a table of the enrichment analysis results:
+
 ```{r}
 write.table(GO.out[GO.out$over_represented_pvalue < 0.05,1:2],row.names=FALSE,file="../output/GO_terms.txt", quote = FALSE,col.names = FALSE)
 ```
 
-Cut and paste the GO terms and p-values into REVIGO.
+Cut and paste the GO terms and p-values into REVIGO to visualize the analysis.
 
 Use <http://revigo.irb.hr/> (REVIGO) to visualize enrichment.
 (use website)
 
-Clustering (Assignment 12)
+**Clustering (Assignment 12)**
 
 ```{r}
 library(tidyverse)
