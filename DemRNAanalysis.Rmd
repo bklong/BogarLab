@@ -732,7 +732,7 @@ plot(gene_hclust_col, cex=.6) #redraw the tree everytime before adding the recta
 rect.hclust(gene_hclust_col, k = 6, border = "red")
 ```
 
-\-\--
+Assign p-values to clusters in tree:
 
 ```{r}
 library(pvclust)
@@ -743,25 +743,27 @@ fit <- pvclust(E_matrix, method.hclust = "ward.D", method.dist = "euclidean", nb
 plot(fit, print.num=FALSE)
 ```
 
+Make a heatmap that visualizes your gene expression data:
+
 ```{r}
+library(gplots)
+
 heatmap.2(E_matrix, Rowv = as.dendrogram(gene_hclust_row),  density.info="none", trace="none", margins = c(10,5))
 ```
 
-K-Means Clustering:
+K-Means Clustering
 
-```{r}
-# you do not have to run this code chunk
-# library(animation) 
+The basic steps of K-Means Clustering are as follows:
 
-# kmeans.ani(x = cbind(X1 = runif(50), X2 = runif(50)), centers = 3,
-# hints = c("Move centers!", "Find cluster?"), pch = 1:3, col = 1:3)
+1.  Randomly assign each sample in your data set to one of the k clusters.
 
-# kmeans.ani(x = cbind(X1 = runif(50), X2 = runif(50)), centers = 10,
-# hints = c("Move centers!", "Find cluster?"), pch = 1:3, col = 1:3)
+2.  Calculate the mean of each cluster (aka the center)
 
-# kmeans.ani(x = cbind(X1 = runif(50), X2 = runif(50)), centers = 5,
-# hints = c("Move centers!", "Find cluster?"), pch = 1:3, col = 1:3)
-```
+3.  Update the assignments by assigning samples to the cluster whose mean they are closest to.
+
+4.  Repeat steps 2 and 3 until assignments stop changing.
+
+To make a K-Means Clustering Visual:
 
 ```{r}
 library(ggplot2)
@@ -785,6 +787,12 @@ ggplot(data = plotting, aes(x = PC1, y = PC2, label = Row.names, color = cluster
   geom_point(alpha = 0.8, size = 2, stat = "identity") 
 ```
 
+Estimating a Gap Statistic
+
+This is a method for calculating the ideal number of clusters that one should use in K-Means Clustering.
+
+Visualize the gap statistic:
+
 ```{r}
 library(cluster)
 set.seed(125)
@@ -792,9 +800,13 @@ gap <- clusGap(E_matrix, FUN = kmeans, iter.max = 30, K.max = 20, B = 100)
 plot(gap, main = "Gap Statistic")
 ```
 
+Use this code to find out the number of ideal clusters calculated:
+
 ```{r}
 with(gap, maxSE(Tab[,"gap"], Tab[,"SE.sim"], method="firstSEmax"))
 ```
+
+Make a plot as you did before, but this time using the number of clusters you calculated above:
 
 ```{r}
 library(ggplot2)
@@ -832,6 +844,8 @@ ggplot(data = plotting, aes(x = PC1, y = PC2, label = Row.names, color = cluster
   geom_point(alpha = 0.8, size = 2, stat = "identity") 
 ```
 
+Plot the clusters:
+
 ```{r}
 set.seed(25) #make this repeatable as kmeans has random starting positions
 fit8 <- kmeans(E_matrix, 8)
@@ -855,7 +869,7 @@ clus_summary %>% ggplot(aes(x=sample_group, y=expression, group=gene_index)) + #
   theme(axis.text.x = element_text(angle = 90, size = 7, hjust = 1, vjust = 0))
 ```
 
-Co-Expression (Assignment 13)
+**Co-Expression (Assignment 13)**
 
 ```{r}
 # make sure to change the path if needed
