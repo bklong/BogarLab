@@ -871,16 +871,22 @@ clus_summary %>% ggplot(aes(x=sample_group, y=expression, group=gene_index)) + #
 
 **Co-Expression (Assignment 13)**
 
+Load data into R:
+
 ```{r}
 # make sure to change the path if needed
+#list of DEGs in response to trt
 trt.genes <- read_csv("../input/DEgenes.trt.csv") 
 
 
-# make sure to change the path to where you downloaded this using wget
+# make sure to change the path if necessary
+#DGE data
 brass_voom_E <- read_csv("../input/voom_transform_brassica.csv.gz") %>%
   select(GeneID, matches("INTERNODE|PETIOLE|LEAF")) # subset the data to only keep the columns we want
 head(brass_voom_E[,1:6])
 ```
+
+Make a smaller data frame and matrix with only the genes differentially expressed by treatment:
 
 ```{r}
 brass_voom_E_trt <- brass_voom_E %>%
@@ -894,11 +900,13 @@ E_matrix_trt <- brass_voom_E_trt %>%
   as.matrix()
 ```
 
+Load in annotation:
+
 ```{r}
 annotation <- read_tsv("../input/FileS9.txt",col_names = c("GeneID","description"))
 ```
 
-Calculate mutual ranks:
+Calculate mutual ranks and make adjacency matrices:
 
 ```{r}
 E_matrix_cor <- cor(t(E_matrix_trt))
@@ -922,6 +930,8 @@ diag(genes_adj_MR10) <- 0
 genes_adj_MR10
 ```
 
+Calculate how many edges in trt node network:
+
 ```{r}
 num_edges_MR4 <- sum(genes_adj_MR4) / 2  
 num_edges_MR10 <- sum(genes_adj_MR10) / 2
@@ -929,6 +939,8 @@ num_edges_MR10 <- sum(genes_adj_MR10) / 2
 num_edges_MR4
 num_edges_MR10
 ```
+
+Plot the networks:
 
 ```{r}
 gene_graphMR4 <- graph.adjacency(genes_adj_MR4, mode = "undirected") #convert adjacency to graph
@@ -943,6 +955,9 @@ colbar <- rainbow(max(compsMR10)+1)                                   #define co
 V(gene_graphMR10)$color <- colbar[compsMR10+1]                          #assign colors to nodes
 plot(gene_graphMR10, layout = layout_with_fr, vertex.size = 4, vertex.label = NA, main="MR 10")
 ```
+
+The functions `graph.density()` and `average.path.length()` compute the graph density and average path length (big surprise).
+Use these functions to determine which graph (MR4 or MR10) has the greater density and the greater average path length:
 
 ```{r}
 graph_MR4 <- graph_from_adjacency_matrix(genes_adj_MR4, mode = "undirected")
@@ -960,12 +975,16 @@ avg_path_length_MR4
 avg_path_length_MR10
 ```
 
+Add in annotation to adjacency matrix:
+
 ```{r}
 colSums(genes_adj_MR4) %>%
   sort(decreasing = TRUE) %>%
   tibble(GeneID=names(.), degree=.) %>%
   left_join(annotation) %>% head()
 ```
+
+Determine betweenness centrality:
 
 ```{r}
 betweenness_centrality <- betweenness(graph_MR4, directed = FALSE)
@@ -978,6 +997,8 @@ max_betweenness_gene
 max_betweenness_value
 gene_function
 ```
+
+Visualize the network, but with a certain node highlighted:
 
 ```{r}
 gene_graphMR4 <- graph.adjacency(genes_adj_MR4, mode = "undirected")
@@ -995,6 +1016,8 @@ V(gene_graphMR4)["Bra023998"]$size <- 6                 # define highlight node 
 
 plot(gene_graphMR4, layout=layout_with_mds, vertex.label = NA)
 ```
+
+We are interested in visualizing the path between the gene with the highest betweenness (a possible regulator) and the gene with the highest degree centrality (a possible response gene):
 
 ```{r}
 gene_graphMR4 <- graph.adjacency(genes_adj_MR4, mode = "undirected")
@@ -1022,6 +1045,8 @@ E(gene_graphMR4, path = pl)$width <- 7               # define highlight edge wid
 plot(gene_graphMR4, layout = layout_with_fr, vertex.size = 5, vertex.label = NA)
 
 ```
+
+Plot the MR4 network, highlighting the highest degree centrality node and the highest betweenness centrality node (using different colors):
 
 ```{r}
 gene_graphMR4 <- graph.adjacency(genes_adj_MR4, mode = "undirected")
