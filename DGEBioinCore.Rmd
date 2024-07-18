@@ -1,0 +1,66 @@
+---
+title: "DGE Bioinformatics Core"
+author: "Britt"
+date: "2024-07-18"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## DGE Analysis (Adapted from UC Davis Bioinformatics Core)
+
+**DGE Steps:**
+
+1.  Read count data into R.
+
+2.  Filter genes (uninteresting genes, unexpressed genes)
+
+3.  Calculate normalizing factors (sample-specific adjustments)
+
+4.  Calculate dispersion (gene-gene variance-stabilizing transformation)
+
+5.  Fit a statistical model to your experiment.
+
+6.  Perform likely ratio tests on comparisons of interest (using contrasts)
+
+7.  Adjust for multiple testing (Benjamini-Hochberg or q-value common)
+
+8.  Check results for confidence.
+
+9.  Attach annotation if available and write tables.
+
+**Read count data into R:**
+
+```{r}
+library(readr)
+counts.data <- read_tsv("../input/gh_internode_counts2.tsv") #assign counts data to an object
+```
+
+**Filter genes:**
+
+Filter out unexpressed genes.
+
+```{r}
+#retain only the reads that were over 10 count in at least three samples
+counts.data <- counts.data[rowSums(counts.data[,-1] > 10) >= 3,]
+```
+
+**Calculate normalization factors:**
+
+Normalization in edgeR/voom is model-based, you calculate normalization
+factors using the function calcNormFactors which by default uses TMM
+(trimmed means of M values). Assumes most genes are not DE.
+
+**Calculate dispersion:**
+
+**Fit statistical model to data:**
+
+**Perform likely ratio tests:**
+
+**Adjust for multiple testing:**
+
+**Check results:**
+
+**Attach annotation and write tables:**
