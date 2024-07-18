@@ -160,7 +160,7 @@ htseq-count -s no -t CDS -i Parent \
 7.  Test the significance of experimental parameters for explaining gene expression.
 8.  Examine result.
 
-DGE Steps (Adapted from UC Davis Bioinformatics Core)
+**DGE Steps (Adapted from UC Davis Bioinformatics Core)** (this may need to be updated to newer version)
 
 1.  Read count data into R.
 2.  Filter genes (uninteresting genes, unexpressed genes)
