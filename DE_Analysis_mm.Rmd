@@ -122,6 +122,8 @@ metadata <- as.data.frame(strsplit2(sample_names, c("_"))[,2:4], row.names = sam
 
 colnames(metadata) <- c("mouse", "genotype", "cell_type")
 
+metadata
+
 ```
 
 Create a new variable "group" that combines genotype and cell type.
@@ -133,6 +135,8 @@ metadata$group <- interaction(metadata$genotype, metadata$cell_type)
 table(metadata$group)
 
 table(metadata$mouse)
+
+metadata
 
 ```
 
