@@ -160,6 +160,18 @@ htseq-count -s no -t CDS -i Parent \
 7.  Test the significance of experimental parameters for explaining gene expression.
 8.  Examine result.
 
+DGE Steps (Adapted from UC Davis Bioinformatics Core)
+
+1.  Read count data into R.
+2.  Filter genes (uninteresting genes, unexpressed genes)
+3.  Calculate normalizing factors (sample-specific adjustments)
+4.  Calculate dispersion (gene-gene variance-stabilizing transformation)
+5.  Fit a statistical model to your experiment.
+6.  Perform likely ratio tests on comparisons of interest (using contrasts)
+7.  Adjust for multiple testing (Benjamini-Hochberg or q-value common)
+8.  Check results for confidence.
+9.  Attach annotation if available and write tables.
+
 Start:
 
 **1. Load the RNAseq counts.**
