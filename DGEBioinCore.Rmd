@@ -49,9 +49,7 @@ counts.data <- counts.data[rowSums(counts.data[,-1] > 10) >= 3,]
 
 **Calculate normalization factors:**
 
-Normalization in edgeR/voom is model-based, you calculate normalization
-factors using the function calcNormFactors which by default uses TMM
-(trimmed means of M values). Assumes most genes are not DE.
+Normalization in edgeR/voom is model-based, you calculate normalization factors using the function calcNormFactors which by default uses TMM (trimmed means of M values). Assumes most genes are not DE.
 
 **Calculate dispersion:**
 
