@@ -349,6 +349,7 @@ First we tell EdgeR what our experimental design was.
 Then, the dispersions.
 
 ```{r}
+#sample.description is the original descriptive dataset
 design <- model.matrix(~sp+trt,data = sample.description)
 rownames(design) <- sample.description$sample
 design
@@ -375,6 +376,7 @@ To find differentially expressed genes, we basically make linear models for the 
 
 ```{r}
 #this is the full model with all coefficients
+#dge.data is the normalized count data
 fit <- glmFit(dge.data, design)
 ```
 
