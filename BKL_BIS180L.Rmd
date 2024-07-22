@@ -349,7 +349,7 @@ First we tell EdgeR what our experimental design was.
 Then, the dispersions.
 
 ```{r}
-#sample.description is the original descriptive dataset
+#sample.description is the original descriptive dataset (describes our samples but doesn't have counts data)
 design <- model.matrix(~sp+trt,data = sample.description)
 rownames(design) <- sample.description$sample
 design
