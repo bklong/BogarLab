@@ -259,9 +259,9 @@ head(sample.description)
 make three more columns:
 
 1\.
-column "sp" that has TC, TCR, or NM, indicating the inoculation treatment.
-TC is Trunocolumella citrina only, TCR is T.
-citrina and Rhizopogon both, and NM is control (no inoculation/non-mycorrhizal).
+column "sp" that has TC, TCS, or NM, indicating the inoculation treatment.
+TC is Trunocolumella citrina only, TCS is T.
+citrina and Suillus both, and NM is control (no inoculation/non-mycorrhizal).
 
 2\.
 column "trt" that indicates the treatment with either "C" or "T" (control or drought treatment)
