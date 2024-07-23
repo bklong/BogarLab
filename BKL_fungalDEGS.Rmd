@@ -25,59 +25,65 @@ Start:
 **1. Load the RNAseq counts.**
 
 ```{bash, eval = FALSE}
-#take a look at counts data 
-#replace this file with what you get back from core
-head A03_counts.tsv 
+#take a look at fungal counts data
+head A03_counts.tsv #replace this file with fungal counts that you get back from core
 ```
 
 ```{r}
-library(readr) 
-counts.data.TC <- read_tsv("../input/gh_internode_counts2.tsv") 
-#assign counts data to an object
-#TC for T. citrina data
+library(readr)
+fungal.counts <- read_tsv("../input/gh_internode_counts2.tsv") #assign fungal counts data to an object
 ```
 
 "You may have noticed that the first gene_id is labelled"\*". These are the reads that did not map to a gene. Let's remove this row from the data. Also let's replace any"NA" records with "0" because that is what NA means in this case."
 
 ```{r}
-#remove gene IDs labeled "*" and change NAs to 0s   
-library(tidyverse)  
-counts.data.TC <- counts.data.TC %>% filter(gene_id!="*") 
-counts.data.TC[is.na(counts.data.TC)] <- 0  
-head(counts.data.TC)
+#remove gene IDs labeled "*" and change NAs to 0s 
+
+library(tidyverse)
+
+fungal.counts <- fungal.counts %>% filter(gene_id!="*")
+fungal.counts[is.na(fungal.counts)] <- 0
+
+head(fungal.counts)
 ```
 
 "The column names are too long. Use the `str_remove()` command to remove the".1_matched.merged.fq.bam" suffix from each column name. Although it doesn't matter in this case, surrounding the "pattern" inside of the function `fixed()` would be a good idea, because "." is a wildcard character."
 
 ```{r}
-#shorten column names 
-library(stringr)  
-colnames(counts.data) <- str_remove(colnames(counts.data.TC), fixed(".1_matched.merged.fq.bam"))  
-colnames(counts.data.TC)
+#shorten column names
+library(stringr)
+
+colnames(fungal.counts) <- str_remove(colnames(fungal.counts), fixed(".1_matched.merged.fq.bam"))
+
+colnames(fungal.counts)
 ```
 
 ```{r}
-#retain only the reads that were over 10 count in at least three samples 
-counts.data.TC <- counts.data.TC[rowSums(counts.data.TC[,-1] > 10) >= 3,]
+#retain only the reads that were over 10 count in at least three samples
+fungal.counts <- fungal.counts[rowSums(fungal.counts[,-1] > 10) >= 3,]
 ```
 
-"We expect that read counts, especially from biological replicates, will be highly correlated. Check to see if this is the case using the `pairs()` function and the `cor()` function. Pairs should be applied to the (potentially log transformed) counts.data.TC, NOT the correlation matrix."
+"We expect that read counts, especially from biological replicates, will be highly correlated. Check to see if this is the case using the `pairs()` function and the `cor()` function. Pairs should be applied to the (potentially log transformed) fungal.counts, NOT the correlation matrix."
 
 ```{r}
 #the below code needs to be fixed
-counts_subset <- counts.data.TC[, -which(names(counts.data.TC) == "gene_id")] counts_subset <- counts_subset[1:1000, ] 
-correlation <- cor(counts_subset) pairs(correlation)  
-transformed_counts <- log2(counts_subset + 1)  
-transformed_correlation <- cor(transformed_counts) 
+counts_subset <- fungal.counts[, -which(names(fungal.counts) == "gene_id")]
+counts_subset <- counts_subset[1:1000, ]
+correlation <- cor(counts_subset)
+pairs(correlation)
+
+transformed_counts <- log2(counts_subset + 1) 
+transformed_correlation <- cor(transformed_counts)
 pairs(transformed_correlation)
 ```
 
 "Once you have a correlation table, use the code provided to visualize it. Then, comment on the results from the pairs and correlation heatmap plots. Are the replicates more similar to each other than they are to other samples? Do you think there are any mistakes in the sample treatment labels?"
 
 ```{r}
-rownames(cor.table) <- str_remove(rownames(cor.table), "_INTERNODE.*") 
-#shorter names for better plotting 
-colnames(cor.table) <- str_remove(colnames(cor.table), "_INTERNODE.*")  
+#will need to change this according to our sample names
+rownames(cor.table) <- str_remove(rownames(cor.table), "_INTERNODE.*") #shorter names for better plotting
+colnames(cor.table) <- str_remove(colnames(cor.table), "_INTERNODE.*")
+
 cor.table %>% gplots::heatmap.2(dendrogram="row", trace = "none", col=viridis::viridis(25, begin=.25), margins=c(7,8))
 ```
 
@@ -90,30 +96,42 @@ We need to tell EdgeR what groups our samples belong to. In order to do this we'
 At this step, I MAY need to make two separate dataframes for the fungal data and tree data. We will see.
 
 ```{r}
-#make tibble with descriptions from counts data table 
-sample.description <- tibble(sample=colnames(counts.data.TC)[-1])  
+#make tibble with descriptions from counts data table
+sample.description <- tibble(sample=colnames(fungal.counts)[-1])
+
 head(sample.description)
 ```
 
 make three more columns:
 
-1\. column "sp" that has TC, TCS, or NM, indicating the inoculation treatment. TC is Trunocolumella citrina only, TCS is T. citrina and Suillus both, and NM is control (no inoculation/non-mycorrhizal).
+1\. column "sp" that has TC or TCS, indicating the inoculation treatment. TC is Trunocolumella citrina only and TCS is T. citrina and Suillus both.
 
 2\. column "trt" that indicates the treatment with either "C" or "T" (control or drought treatment)
 
 3\. column "group" that has sp and trt pasted together with "\_" as a separator. You can use `str_c()` and the "sp" and "trt" columns for this.
 
 ```{r}
-library(dplyr) 
-library(stringr)  
-counts.data.TC.new <- sample.description %>%   mutate(     sp = str_extract(sample, "(IMB211|R500)"),       trt = str_extract(sample, "(NDP|DP)"),          group = str_c(sp, trt, sep = "_")                 )  
-head(counts.data.TC.new)
+#change these labels based on our sample names once we receive data back
+library(dplyr)
+library(stringr)
+
+fungal.counts.new <- sample.description %>%
+  mutate(
+    sp = str_extract(sample, "(IMB211|R500)"),  
+    trt = str_extract(sample, "(NDP|DP)"),     
+    group = str_c(sp, trt, sep = "_")              
+  )
+
+head(fungal.counts.new)
 ```
 
 ```{r}
-counts.data.TC.new <- counts.data.TC.new %>%   mutate(gt=factor(gt),           trt=factor(trt,levels = c("NDP","DP"))) 
-# setting the levels in this way makes "NDP" the reference    
-counts.data.TC.new
+#change treatments according to our data
+fungal.counts.new <- fungal.counts.new %>%
+  mutate(gt=factor(gt), 
+         trt=factor(trt,levels = c("NDP","DP"))) # setting the levels in this way makes "NDP" the reference  
+
+fungal.counts.new
 ```
 
 Calculate Normalization factors:
@@ -121,12 +139,14 @@ Calculate Normalization factors:
 EdgeR wants numeric data, so we must convert it first. Then we calculate normalization factors using TTM method.
 
 ```{r}
-library(edgeR) 
-counts.matrix <- counts.data.TC %>% select(-gene_id) %>% as.matrix() 
-rownames(counts.matrix) <- counts.data.TC$gene_id  
-dge.data <- DGEList(counts=counts.matrix, group=sample.description$group) 
-dim(dge.data)  
-dge.data <- calcNormFactors(dge.data, method = "TMM") 
+library(edgeR)
+counts.matrix <- fungal.counts %>% select(-gene_id) %>% as.matrix()
+rownames(counts.matrix) <- fungal.counts$gene_id
+
+dge.data <- DGEList(counts=counts.matrix, 
+                    group=sample.description$group)
+dim(dge.data) 
+dge.data <- calcNormFactors(dge.data, method = "TMM")
 dge.data$samples # look at the normalization factors
 ```
 
@@ -141,9 +161,12 @@ plotMDS(dge.data)
 Make a nicer MDS plot:
 
 ```{r}
-mdsvals <- plotMDS(dge.data, plot = FALSE) 
-# get the MDS values for plotting  
-tibble(x=mdsvals$x, y=mdsvals$y, sample=rownames(dge.data$samples)) %>%   inner_join(sample.description) %>%   ggplot(aes(x=x, y=y, color=trt, shape=gt)) +   geom_point(size=3) 
+mdsvals <- plotMDS(dge.data, plot = FALSE) # get the MDS values for plotting
+
+tibble(x=mdsvals$x, y=mdsvals$y, sample=rownames(dge.data$samples)) %>%
+  inner_join(sample.description) %>%
+  ggplot(aes(x=x, y=y, color=trt, shape=gt)) +
+  geom_point(size=3) 
 ```
 
 Extract normalized data:
@@ -151,9 +174,10 @@ Extract normalized data:
 I'm still not sure why we would log transform the normalized data or not. Here is how we extract the normalized data either way.
 
 ```{r}
-counts.data.TC.normal <- cpm(dge.data)   
-# or log2 transformed: 
-counts.data.TC.normal.log <- cpm(dge.data,log = TRUE)
+fungal.counts.normal <- cpm(dge.data) 
+
+# or log2 transformed:
+fungal.counts.normal.log <- cpm(dge.data,log = TRUE)
 ```
 
 **5. Determine the dispersion parameter (how over-dispersed is the data?)**
@@ -163,20 +187,23 @@ Calculate dispersion factors:
 First we tell EdgeR what our experimental design was. Then, the dispersions.
 
 ```{r}
-#sample.description is the original descriptive dataset (describes our samples but doesn't have counts data) 
-design <- model.matrix(~sp+trt,data = sample.description) 
-rownames(design) <- sample.description$sample 
+#sample.description is the original descriptive dataset (describes our samples but doesn't have counts data)
+design <- model.matrix(~sp+trt,data = sample.description)
+rownames(design) <- sample.description$sample
 design
 ```
 
 ```{r}
-#First the overall dispersion 
-dge.data <- estimateGLMCommonDisp(dge.data,design,verbose = TRUE)  
-#Then a trended dispersion based on count level 
-dge.data <- estimateGLMTrendedDisp(dge.data,design)  
-#And lastly we calculate the gene-wise dispersion, using the prior estimates to "squeeze" the dispersion towards the common dispersion. 
-dge.data <- estimateGLMTagwiseDisp(dge.data,design)  
-#We can examine this with a plot 
+#First the overall dispersion
+dge.data <- estimateGLMCommonDisp(dge.data,design,verbose = TRUE)
+
+#Then a trended dispersion based on count level
+dge.data <- estimateGLMTrendedDisp(dge.data,design)
+
+#And lastly we calculate the gene-wise dispersion, using the prior estimates to "squeeze" the dispersion towards the common dispersion.
+dge.data <- estimateGLMTagwiseDisp(dge.data,design)
+
+#We can examine this with a plot
 plotBCV(dge.data)
 ```
 
@@ -185,21 +212,21 @@ plotBCV(dge.data)
 To find differentially expressed genes, we basically make linear models for the data that have more or less coefficients. (We compare the full model, with all coefficients, with a model that has one or more coefficients dropped to look at the difference between them.)
 
 ```{r}
-#this is the full model with all coefficients 
-#dge.data is the normalized count data 
+#this is the full model with all coefficients
+#dge.data is the normalized count data
 fit <- glmFit(dge.data, design)
 ```
 
 ```{r}
-#this model looks at genes differentially expressed in genotype R500 versus the other genotype 
+#this model looks at genes differentially expressed in genotype R500 versus the other genotype
+#change to our coefficient of interest (likely treatment)
 gt.lrt <- glmLRT(fit,coef = "gtR500")
 ```
 
 **7. Test the significance of experimental parameters for explaining gene expression.**
 
 ```{r}
-topTags(gt.lrt) 
-# the top 10 most differentially expressed genes between the two genotypes (using the above model)
+topTags(gt.lrt) # the top 10 most differentially expressed genes between the two genotypes (using the above model)
 ```
 
 In the resulting table from using topTags,
@@ -217,8 +244,7 @@ In the resulting table from using topTags,
 To summarize:
 
 ```{r}
-summary(decideTestsDGE(gt.lrt,p.value=0.01)) 
-#This uses the FDR. 0.05 would be OK also.
+summary(decideTestsDGE(gt.lrt,p.value=0.01)) #This uses the FDR.  0.05 would be OK also.
 ```
 
 In the table resulting from decideTestsDGE, the Down row is the number of down regulated genes in R500 relative to IMB211 and the Up row is the number of up regulated genes.
@@ -226,12 +252,15 @@ In the table resulting from decideTestsDGE, the Down row is the number of down r
 If we want to create a table of all differentially expressed genes at a given FDR, then:
 
 ```{r}
-#Extract genes with a FDR < 0.01 (could also use 0.05) 
-DEgene.gt <- topTags(gt.lrt,n = Inf,p.value = 0.01)$table  
-#save to a file write.csv(DEgene.gt,"../output/DEgenes.gt.csv")  
-#Or if we want all genes, regardless of FDR: 
-DEgene.gt.all <- topTags(gt.lrt,n = Inf, p.value = 1)$table 
-#save to a file 
+#Extract genes with a FDR < 0.01 (could also use 0.05)
+DEgene.gt <- topTags(gt.lrt,n = Inf,p.value = 0.01)$table
+
+#save to a file
+write.csv(DEgene.gt,"../output/DEgenes.gt.csv")
+
+#Or if we want all genes, regardless of FDR:
+DEgene.gt.all <- topTags(gt.lrt,n = Inf, p.value = 1)$table
+#save to a file
 write.csv(DEgene.gt.all,"../output/DEgenes.gt.all.csv")
 ```
 
@@ -240,22 +269,31 @@ write.csv(DEgene.gt.all,"../output/DEgenes.gt.all.csv")
 Define a function to make a bar graph of genes of interest:
 
 ```{r}
-plotDE <- function(genes, dge, sample.description) {   require(ggplot2)   
-  tmp.data <- t(log2(cpm(dge[genes,])+1))   
-  tmp.data <- tmp.data %>%     as.data.frame() %>%     rownames_to_column("sample") %>%     left_join(sample.description,by="sample")   
-  tmp.data <- tmp.data %>%     pivot_longer(cols=starts_with("Bra"), values_to = "log2_cpm", names_to = "gene")   
-  pl <- ggplot(tmp.data,aes(x=gt,y=log2_cpm,fill=trt))   
-  pl <- pl + facet_wrap( ~ gene)   
-  pl <- pl + ylab("log2(cpm)") + xlab("genotype")   
-  pl <- pl + geom_boxplot()   pl + theme(axis.text.x  = element_text(angle=45, vjust=1,hjust=1)) }
+plotDE <- function(genes, dge, sample.description) {
+  require(ggplot2)
+  tmp.data <- t(log2(cpm(dge[genes,])+1))
+  tmp.data <- tmp.data %>%
+    as.data.frame() %>%
+    rownames_to_column("sample") %>%
+    left_join(sample.description,by="sample")
+  tmp.data <- tmp.data %>%
+    pivot_longer(cols=starts_with("Bra"), values_to = "log2_cpm", names_to = "gene")
+  pl <- ggplot(tmp.data,aes(x=gt,y=log2_cpm,fill=trt))
+  pl <- pl + facet_wrap( ~ gene)
+  pl <- pl + ylab("log2(cpm)") + xlab("genotype")
+  pl <- pl + geom_boxplot()
+  pl + theme(axis.text.x  = element_text(angle=45, vjust=1,hjust=1))
+}
 ```
 
 Use the function plotDE to plot a single gene of interest or the top 9 genes expressed etc:
 
 ```{r}
-# A single gene 
-plotDE("Bra009785",dge.data,sample.description)  
-#top 9 genes 
+#change according to our genes of interest etc
+# A single gene
+plotDE("Bra009785",dge.data,sample.description)
+
+#top 9 genes
 plotDE(rownames(DEgene.gt)[1:9],dge.data,sample.description)
 ```
 
@@ -266,19 +304,24 @@ Treatments have effects on treatments. One species of fungus may express genes i
 Make the new model:
 
 ```{r}
-design.interaction <- model.matrix(~gt*trt,data = counts.data.TC.new) 
-rownames(design.interaction) <- counts.data.TC.new$sample 
+design.interaction <- model.matrix(~sp*trt,data = fungal.counts.new)
+rownames(design.interaction) <- fungal.counts.new$sample
 design.interaction
 ```
 
 Now using the new model, do the same steps that we did before to find differentially expressed genes:
 
 ```{r}
-#First the overall dispersion 
-dge.data.interaction <- estimateGLMCommonDisp(dge.data,design.interaction,verbose = TRUE)  
-#Then a trended dispersion based on count level 
-dge.data.interaction <- estimateGLMTrendedDisp(dge.data,design.interaction)  #And lastly we calculate the gene-wise dispersion, using the prior estimates to "squeeze" the dispersion towards the common dispersion. 
-dge.data.interaction <- estimateGLMTagwiseDisp(dge.data,design.interaction)  #We can examine this with a plot 
+#First the overall dispersion
+dge.data.interaction <- estimateGLMCommonDisp(dge.data,design.interaction,verbose = TRUE)
+
+#Then a trended dispersion based on count level
+dge.data.interaction <- estimateGLMTrendedDisp(dge.data,design.interaction)
+
+#And lastly we calculate the gene-wise dispersion, using the prior estimates to "squeeze" the dispersion towards the common dispersion.
+dge.data.interaction <- estimateGLMTagwiseDisp(dge.data,design.interaction)
+
+#We can examine this with a plot
 plotBCV(dge.data)
 ```
 
@@ -287,6 +330,7 @@ fit.interaction <- glmFit(dge.data.interaction, design.interaction)
 ```
 
 ```{r}
+#change coefficients as necessary
 gt.lrt.interaction <- glmLRT(fit.interaction,coef = "gtR500:trtDP")
 ```
 
@@ -299,21 +343,44 @@ summary(decideTestsDGE(gt.lrt.interaction,p.value=0.01)) #This uses the FDR.  0.
 ```
 
 ```{r}
-#Extract genes with a FDR < 0.01 (could also use 0.05) 
-DEgene.gt.interaction <- topTags(gt.lrt.interaction,n = Inf,p.value = 0.01)$table  
-#save to a file 
-write.csv(DEgene.gt.interaction,"../output/DEgenes.gt.interaction.csv")  
-#Or if we want all genes, regardless of FDR: 
-DEgene.gt.all.interaction <- topTags(gt.lrt.interaction,n = Inf, p.value = 1)$table 
-#save to a file 
+#Extract genes with a FDR < 0.01 (could also use 0.05)
+DEgene.gt.interaction <- topTags(gt.lrt.interaction,n = Inf,p.value = 0.01)$table
+
+#save to a file
+write.csv(DEgene.gt.interaction,"../output/DEgenes.gt.interaction.csv")
+
+#Or if we want all genes, regardless of FDR:
+DEgene.gt.all.interaction <- topTags(gt.lrt.interaction,n = Inf, p.value = 1)$table
+#save to a file
 write.csv(DEgene.gt.all.interaction,"../output/DEgenes.gt.all.interaction.csv")
+```
+
+We already made the function "plotDE"...I need to double check that the below chunk of code doesn't need to be changed for an interaction model. It seems like it doesn't.
+
+```{r}
+plotDE <- function(genes, dge, sample.description) {
+  require(ggplot2)
+  tmp.data <- t(log2(cpm(dge[genes,])+1))
+  tmp.data <- tmp.data %>%
+    as.data.frame() %>%
+    rownames_to_column("sample") %>%
+    left_join(sample.description,by="sample")
+  tmp.data <- tmp.data %>%
+    pivot_longer(cols=starts_with("Bra"), values_to = "log2_cpm", names_to = "gene")
+  pl <- ggplot(tmp.data,aes(x=gt,y=log2_cpm,fill=trt))
+  pl <- pl + facet_wrap( ~ gene)
+  pl <- pl + ylab("log2(cpm)") + xlab("genotype")
+  pl <- pl + geom_boxplot()
+  pl + theme(axis.text.x  = element_text(angle=45, vjust=1,hjust=1))
+}
 ```
 
 Use plotDE to plot gene expression just like we did for the non-interaction model:
 
 ```{r}
-# A single gene 
-plotDE("Bra009785",dge.data.interaction,counts.data.TC.new)  
-#top 9 genes 
-plotDE(rownames(DEgene.gt.interaction)[1:9],dge.data.interaction,counts.data.TC.new)
+# A single gene
+plotDE("Bra009785",dge.data.interaction,fungal.counts.new)
+
+#top 9 genes
+plotDE(rownames(DEgene.gt.interaction)[1:9],dge.data.interaction,fungal.counts.new)
 ```
