@@ -9,6 +9,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+This is Anna's workflow for processing raw RNA data: from raw sequence to counts. This will need to be adjusted according to our unique pathways for files etc
+
 Anna: I run this on the Farm cluster, which I believe only services the college of ag. But I would imagine a different cluster would work in a similar way. The sbatch script is the one I give to Farm to run the job, and then the cluster basically runs each script in numbered order. To summarise:
 
 1.  1_trim.sh - This downloads the fastq files from the DNA core and trims the reads using Trimmomatic
@@ -21,8 +23,6 @@ Anna: I run this on the Farm cluster, which I believe only services the college 
 
 ```{bash, eval = FALSE}
 ################# Sequence Trimming - Trimmomatic
-################# Anna Jo Muhich
-################# September 2023
 
 ### Set up environment
 #conda create -n trimmomatic
