@@ -9,6 +9,13 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Download the TRCI transcriptome on personal computer and move it to server:
+
+```{bash, eval = FALSE}
+#this code goes in the personal computer terminal
+scp -P 22345 /c/Users/britt/Documents/Trucit1_1_EST_20220613_cluster_consensi.fasta.gz bklong@bogarprecision.plb.ucdavis.edu:~/DemRNAanalysis/TRCItranscriptome
+```
+
 Using Kallisto to index genome:
 
 Required argument:
