@@ -9,6 +9,18 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Counts reads in our data to get an idea of how big the files are:
+
+```{bash, eval = FALSE}
+#this is imperfect and needs to be modified to tell us how many reads per fastq file
+for file in *.fastq.gz; do
+    echo "Processing file: $file"
+    # Command to count reads in the fastq file
+    read_count=$(zcat "$file" | echo $(( $(wc -l) / 4 )))
+    echo "Reads in $file: $read_count"
+done
+```
+
 Download the TRCI transcriptome on personal computer and move it to server:
 
 ```{bash, eval = FALSE}
