@@ -1,0 +1,423 @@
+---
+title: "Anna Kliebs RNA work flow"
+author: "Britt"
+date: "2024-07-24"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Anna: I run this on the Farm cluster, which I believe only services the college of ag. But I would imagine a different cluster would work in a similar way. The sbatch script is the one I give to Farm to run the job, and then the cluster basically runs each script in numbered order. To summarise:
+
+1.  1_trim.sh - This downloads the fastq files from the DNA core and trims the reads using Trimmomatic
+2.  2_QC.sh - this runs MultiQC on both the raw and the trimmed reads
+3.  3_alignment.sh - This uses hisat2 to align the trimmed reads to each host and fungal genome as I was describing. It also converts the resulting .sam files to .bam format, which will save space.
+4.  3a_alignment_summary1.sh and 3b_alignment_summary2.R - These just take the alignment stats from hisat2 and convert them into a .csv format so that the alignment scores are all in one place.
+5.  4_readcounts.R - Takes the .bam files and converts them to readcount data using Rsubread and a .gtf reference
+
+1_trim.sh:
+
+```{bash, eval = FALSE}
+################# Sequence Trimming - Trimmomatic
+################# Anna Jo Muhich
+################# September 2023
+
+### Set up environment
+#conda create -n trimmomatic
+eval "$(conda shell.bash hook)"
+conda activate trimmomatic
+#conda install -c bioconda trimmomatic
+
+### Generate a list of the samples you want to run and save as file_list.txt
+cd ~/fastq2readcounts
+#assign your file_list.txt to files variable
+readarray -t files < file_list.txt
+
+### Get raw fastq files
+# set up symlink to your fastq files that is hosted in shared lab directory
+mkdir /group/kliebengrp/ajmuhich/raw_fastq
+ln -s /group/kliebengrp/ajmuhich/raw_fastq raw_fastq
+#put adapters.fa into raw_fastq
+cp reference/adapters.fa raw_fastq
+cd raw_fastq
+# loop to download fastq files using your file list
+for file in "${files[@]}"
+do
+  # Download R1 and R2 for the sample. Change path as needed
+  wget -nv "http://slimsdata.genomecenter.ucdavis.edu/Data/htovi6c3c/Unaligned/Project_DKCK_ATHB34_1_30/${file}_R1.fastq.gz"
+  wget -nv "http://slimsdata.genomecenter.ucdavis.edu/Data/htovi6c3c/Unaligned/Project_DKCK_ATHB34_1_30/${file}_R2.fastq.gz"
+done
+
+# unzip the files
+gunzip *.fastq.gz
+
+### Make directories for processed fastqs
+cd ~/fastq2readcounts
+mkdir /group/kliebengrp/ajmuhich/fastq
+ln -s /group/kliebengrp/ajmuhich/fastq fastq
+mkdir /group/kliebengrp/ajmuhich/unpaired_fastq
+ln -s /group/kliebengrp/ajmuhich/unpaired_fastq unpaired_fastq
+
+### run trimmomatic
+cd raw_fastq
+for file in "${files[@]}"
+do
+  echo ' '
+  echo 'Trimming' $file '...'
+  echo ' '
+  trimmomatic PE -threads 8 ${file}_R1.fastq ${file}_R2.fastq \
+  ${file}_R1_trimmed_paired.fastq ${file}_R1_trimmed_unpaired.fastq \
+  ${file}_R2_trimmed_paired.fastq ${file}_R2_trimmed_unpaired.fastq \
+  ILLUMINACLIP:adapters.fa:2:30:10 \
+  LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:20
+  #relocate output fastqs
+  mv *_paired.fastq ~/fastq2readcounts/fastq
+  mv *unpaired.fastq ~/fastq2readcounts/unpaired_fastq
+done
+
+### compress unused fastqs to conserve space
+### May make more sense to do this in a separate parallel job, time consuming
+#cd /group/kliebengrp/ajmuhich
+#tar -czvf raw_fastq.tar.gz raw_fastq
+#rm -r raw_fastq
+#tar -czvf unpaired_fastq.tar.gz unpaired_fastq
+#rm -r unpaired_fastq
+
+cd ~/fastq2readcounts
+
+conda deactivate
+```
+
+2_QC.sh:
+
+```{bash, eval = FALSE}
+################# QC - MultiQC
+################# Anna Jo Muhich
+################# September 2023
+
+### Versions
+#pip 23.0.1 from /usr/local/lib/python3.9/site-packages/pip (python 3.9)
+#Python 2.7.16
+#multiqc, version 1.12
+
+### Set up environment
+#conda create -n MultiQC
+eval "$(conda shell.bash hook)"
+conda activate MultiQC
+#conda install MultiQC
+#conda install fastqc
+
+### Run QC
+cd fastq
+# make qc directories
+mkdir ~/fastq2readcounts/qc
+mkdir ~/fastq2readcounts/qc/fastqc_out
+# run fastqc
+fastqc --threads 8 -o ~/fastq2readcounts/qc/fastqc_out *.fastq 
+cd ~/fastq2readcounts/qc
+multiqc fastqc_out
+
+#nav back to fastq2readcounts to proceed
+cd ~/fastq2readcounts/
+
+### Run QC on raw fastq
+cd raw_fastq
+# make qc directories
+mkdir ~/fastq2readcounts/qc_raw
+mkdir ~/fastq2readcounts/qc_raw/fastqc_out
+# run fastqc
+fastqc --threads 8 -o ~/fastq2readcounts/qc_raw/fastqc_out *.fastq 
+cd ~/fastq2readcounts/qc_raw
+multiqc fastqc_out
+
+#nav back to fastq2readcounts to proceed
+cd ~/fastq2readcounts/
+conda deactivate
+
+### Proceed to alignment.sh
+```
+
+3_alignment.sh:
+
+```{bash, eval = FALSE}
+################# Alignments - HiSat2
+################# Cucurbit RNAseq
+################# Anna Jo Muhich
+################# August 2023
+
+###Versions
+#hisat2 version 2.2.1
+
+###Set up environment
+#conda create -n hisat2
+eval "$(conda shell.bash hook)"
+conda activate hisat2
+#conda install hisat2
+#conda install samtools
+
+####### First, generate a list of the samples you want to run and save as file_list.txt
+cd ~/fastq2readcounts
+#assign your file_list.txt to files variable
+readarray -t files < file_list.txt
+
+#set up needed directories
+#make symlink to bams on shared storage
+mkdir /group/kliebengrp/ajmuhich/bams
+ln -s /group/kliebengrp/ajmuhich/bams bams
+mkdir readcounts
+
+#navigate to bams output
+cd ~/fastq2readcounts/bams
+
+####### LOOP to align each sample 2 fastqs to host and Bcin genome, convert to .bam
+for file in "${files[@]}"
+do
+  #make new directory for the file
+  mkdir ${file}
+  cd ${file}
+  #perform Host alignment
+  echo ' '
+  echo 'aligning' $file 'to Host genome...'
+  echo ' '
+  hisat2  \
+     -p 8 \
+      -t \
+      --summary-file 'Host_log.txt' \
+      -I 5 \
+      -5 10 \
+      -3 5 \
+      -x  ~/fastq2readcounts/reference/At_TAIR10_index/At_TAIR10 \
+      -1 ~/fastq2readcounts/fastq/${file}_R1_trimmed_paired.fastq\
+      -2 ~/fastq2readcounts/fastq/${file}_R2_trimmed_paired.fastq \
+      --score-min L,0,-0.65 \
+      -S ${file}_Host.sam \
+      --un-conc ~/fastq2readcounts/fastq/${file}_unmapped.fastq
+  #convert Host sam to bam
+  echo ' '
+  echo 'converting .sam to .bam...'
+  echo ' '
+  samtools view -b ${file}_Host.sam > ${file}_Host.bam
+  rm ${file}_Host.sam
+  #perform Bcin alignment
+  echo ' '
+  echo 'aligning Host unmapped reads from' $file 'to Bcin genome...'
+  echo ' '
+  hisat2 \
+    -p 8 \
+    -t \
+    --summary-file 'Bcin_log.txt' \
+    -I 5 \
+    -5 10 \
+    -3 5 \
+    -x ~/fastq2readcounts/reference/Bcin_toplevelDNA_index/Bcin_toplevelDNA \
+    -1 ~/fastq2readcounts/fastq/${file}_unmapped.1.fastq \
+    -2 ~/fastq2readcounts/fastq/${file}_unmapped.2.fastq \
+    --score-min L,0,-0.85 \
+    -S ${file}_Bcin.sam
+  #convert Bcin sam to bam
+  echo ' '
+  echo 'converting .sam to .bam...'
+  echo ' '
+  samtools view -b ${file}_Bcin.sam > ${file}_Bcin.bam
+  rm ${file}_Bcin.sam
+  #navigate back to bams
+  cd ~/fastq2readcounts/bams
+done
+
+#navigate back to main
+cd ~/fastq2readcounts/
+conda deactivate
+########## Proceed to readcounts.R
+```
+
+3a_alignment_summary1.sh:
+
+```{bash, eval = FALSE}
+#!/bin/bash
+
+##### Alignment Summary
+##### Anna Jo Muhich
+##### August 2023
+
+#Loop to pull out alignment values from .txt files within the /bams outputs
+#In order to evaluate alignment rates across many samples
+
+cd bams
+
+# Initialize an array to hold the data
+data=()
+
+# Loop through each directory in the current directory
+for dir in */; do
+  # Loop through each .txt file in the directory
+  for file in "$dir"*.txt; do
+    # Get the last line of the file
+    last_line=$(tail -n 1 "$file")
+    # Extract the numerical value from the last line
+    value=$(echo "$last_line" | grep -Eo '[0-9]+(\.[0-9]+)?')
+    # Add the filename and value to the data array
+    data+=("$file,$value")
+  done
+done
+
+# Save the table as a CSV file
+printf '%s\n' "${data[@]}" > alignment_summary.csv
+
+#Reformat the alignment_summary.csv in 2b_alignment_summary2.R
+```
+
+4_readcounts.R:
+
+```{r}
+################# .bam to Read Counts (RSubread)
+################# Anna Jo Muhich
+################# August2023
+
+
+###Install packages
+#if (!require("BiocManager", quietly = TRUE))
+  #install.packages("BiocManager")
+#BiocManager::install("Rsubread")
+#install.packages("tidyverse")
+#BiocManager::install("rtracklayer")
+
+
+
+###Load packages
+library(tidyverse)
+library(rtracklayer)
+library(Rsubread)
+library(tools)
+
+
+######## Prepare references (if needed)
+# ###Convert gff to gtf
+# setwd("~/UCDavis/Klieb_Lab/Projects/Cucurbit/Cuc_RNAseq_Pilot/reference")
+# gff <- import.gff("ChineseLong_v3.gff3")
+# #create a column "gene_id" that contains the gene name for every entry
+# gff$gene_id <- ifelse(is.na(gff$ID),gff$Parent,gff$ID)
+# #export
+# export(gff,"ChineseLong_v3.gtf",format="gtf")
+# 
+# ###Convert gff to gtf
+# setwd("~/UCDavis/Klieb_Lab/Projects/Cucurbit/Cuc_RNAseq_Pilot/reference")
+# gff <- import.gff("Gy14_gene_gff_v2")
+# #create a column "gene_id" that contains the gene name for every entry
+# gff$gene_id <- ifelse(is.na(gff$ID),gff$Parent,gff$ID)
+# #export
+# export(gff,"Gy14_gene_gff_v2.gtf",format="gtf")
+# 
+# ###Convert gff to gtf
+# setwd("~/UCDavis/Klieb_Lab/Projects/Cucurbit/Cuc_RNAseq_Pilot/reference")
+# gff <- import.gff("Cpepo_v4.1.gff3")
+# #create a column "gene_id" that contains the gene name for every entry
+# gff$gene_id <- ifelse(is.na(gff$ID),gff$Parent,gff$ID)
+# #export
+# export(gff,"Cpepo_v4.1.gtf",format="gtf")
+
+###Repeat for Bcin
+# gff <- import.gff("Botrytis_cinerea.ASM83294v1.56.gff3")
+# #create a column "gene_id" that contains the gene name for every entry
+# gff$gene_id <- ifelse(is.na(gff$ID),gff$Parent,gff$ID)
+# #export
+# export(gff,"Botrytis_cinerea.ASM83294v1.5.gtf",format="gtf")
+
+
+######## Loop for getting read counts that discerns between Host and Bcin bams.
+
+#start where your sample directories containing .bams are
+setwd("./bams")
+
+# get the list of subdirectories in the main directory
+subdirs <- setdiff(list.dirs(), ".")  # remove "." from subdirs
+# Create an empty list to hold count matrices for each file
+count_list <- list()
+
+# loop through the subdirectories
+for (subdir in subdirs) {
+  # change the working directory to the subdirectory
+  setwd(subdir)
+  # get the list of files in the subdirectory
+  file_list <- list.files()
+  for (file_name in file_list) {
+    # Check if file is a BAM file mapped to the plant genome (these files end in "Host.bam")
+    if (grepl("Host.bam$", file_name)) {
+      
+      # Run featureCounts on the file with Host genes
+      count_matrix <- featureCounts(file = file_name,
+                                    annot.ext = "~/fastq2readcounts/reference/Arabidopsis_thaliana.TAIR10.58.gtf",
+                                    isGTFAnnotationFile = TRUE,
+                                    isPairedEnd = TRUE)
+      # Assign the count matrix to an object with a name based on the file name
+      count_list[[file_name]] <- count_matrix
+    }
+    # Check if the file is a BAM file mapped to the Bcin genome (these files end in "Bcin.bam")
+    if (grepl("Bcin.bam$", file_name)) {
+      
+      # Run featureCounts on the file with Bcin genes
+      count_matrix <- featureCounts(file = file_name,
+                                    annot.ext = "~/fastq2readcounts/reference/Botrytis_cinerea.ASM83294v1.5.gtf",
+                                    isGTFAnnotationFile = TRUE,
+                                    isPairedEnd = TRUE)
+      # Assign the count matrix to an object with a name based on the file name
+      count_list[[file_name]] <- count_matrix
+    }
+  }
+  setwd("..")
+}
+
+#make an empty vector for sample list output
+Host_spl_list <- list()
+Bcin_spl_list <- list()
+
+######### Loop to get RSubread output into dataframes and reformatted
+for (i in 1:length(count_list)) {
+  df <- count_list[[i]]                                       #pulls out a df from the big object
+  counts <- df$counts                                         #get the counts out of the df
+  counts <- as.data.frame(counts)                             #make the counts a df
+                                                              #convert transcripts from rownames to column
+  counts <- rownames_to_column(counts,
+                               var = "transcript")
+  spl_id <- colnames(counts[2]) %>%                           #creates a simple sample ID w/ the plate ID and whether its Host/Bcin
+    str_replace("(.*)_(.*).bam", "\\1_\\2")                   #MAKE CHANGES HERE for your naming convention if you want
+  colnames(counts) <- c("transcript", paste0(spl_id))         #simplify the column name with the sample ID
+  new_object_name <- paste0("counts_", spl_id)                #make a new object name with the sample ID
+  assign(new_object_name, counts)                             #put the finished counts df in an object with its new name
+  if (grepl("Host$", new_object_name)) {                       #check if sample name contains Host or Bcin.
+    Host_spl_list <- append(Host_spl_list, list(counts))        #add the newly generated df to its corresponding list.
+  }
+  if (grepl("Bcin$", new_object_name)) {
+    Bcin_spl_list <- append(Bcin_spl_list, list(counts))
+  }           
+}
+
+######## MERGE the counts of diff samples.
+
+#Put the first df in the list into the df
+counts_Host_combined <- Host_spl_list[[1]]
+counts_Bcin_combined <- Bcin_spl_list[[1]]
+
+#Loop to join the remaining Host dfs together
+for (i in 2:length(Host_spl_list)) {
+  counts_Host_combined <- full_join(counts_Host_combined,
+                                   Host_spl_list[[i]],
+                                   by = "transcript")
+}
+#Loop to join the remaining Bcin dfs together
+for (i in 2:length(Bcin_spl_list)) {
+  counts_Bcin_combined <- full_join(counts_Bcin_combined,
+                                   Bcin_spl_list[[i]],
+                                   by = "transcript")
+}
+
+#clean up column names for samples
+colnames(counts_Host_combined) <- gsub("_Host", "", colnames(counts_Host_combined))
+colnames(counts_Bcin_combined) <- gsub("_Bcin", "", colnames(counts_Bcin_combined))
+
+#save em!
+write.csv(x = counts_Host_combined, file = "~/fastq2readcounts/readcounts/Host_readcounts.csv", row.names = F)
+write.csv(x = counts_Bcin_combined, file = "~/fastq2readcounts/readcounts/Bcin_readcounts.csv", row.names = F)
+
+```
