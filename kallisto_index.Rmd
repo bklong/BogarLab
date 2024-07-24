@@ -1,0 +1,22 @@
+---
+title: "Siyu index genome"
+author: "Britt"
+date: "2024-07-24"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Using Kallisto to index genome:
+
+Required argument:
+-i, --index=STRING
+Add a filename for the kallisto index to be constructed.
+
+```{bash, eval = FALSE}
+kallisto index -i TRCI.index Trucit1_1_AssemblyScaffolds.fasta
+```
+
+ 
