@@ -35,7 +35,17 @@ Required argument:
 Add a file name for the kallisto index to be constructed.
 
 ```{bash, eval = FALSE}
-kallisto index -i TRCI.index Trucit1_1_AssemblyScaffolds.fasta
+#cd to location of fasta file
+kallisto index -i TRCI.index Trucit1_1_EST_20220613_cluster_consensi.fasta.gz
 ```
+
+
+
+
+
+
+
+
+
 
  
