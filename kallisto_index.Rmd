@@ -51,11 +51,55 @@ Directory to write output to.
 kallisto can process either single-end or paired-end reads. The default running mode is paired-end and requires an even number of FASTQ files represented as pairs. Important note: only supply one sample at a time to kallisto. The multiple FASTQ (pair) option is for users who have samples that span multiple FASTQ files.
 
 ```{bash, eval = FALSE}
-kallisto quant -i TRCI.idx -o TRCI_counts pairA_1.fastq pairA_2.fastq pairB_1.fastq pairB_2.fastq
+kallisto quant -i TRCI.idx -o TRCI_counts DFD_005_T28_R1.fastq.gz DFD_005_T28_R2.fastq.gz
 ```
 
+let's write a for loop to automate this for us:
 
+```{bash, eval = FALSE}
+#!/bin/bash
 
+# Define the directory containing the FASTQ files
+FASTQ_DIR="path/to/your/fastq/files"
+
+# Define the Kallisto index file
+KALLISTO_INDEX="TRCI.idx"
+
+# Loop over each R1 FASTQ file in the directory
+for R1_FILE in "$FASTQ_DIR"/*_R1.fastq.gz; do
+  # Generate the corresponding R2 file name by replacing _R1 with _R2
+  R2_FILE="${R1_FILE/_R1/_R2}"
+  
+  # Extract the base name of the file to create the output directory name
+  BASE_NAME=$(basename "$R1_FILE" _R1.fastq.gz)
+  
+  # Define the output directory for Kallisto
+  OUTPUT_DIR="${FASTQ_DIR}/${BASE_NAME}_counts"
+  
+  # Run Kallisto quant
+  kallisto quant -i "$KALLISTO_INDEX" -o "$OUTPUT_DIR" "$R1_FILE" "$R2_FILE"
+done
+```
+
+without the comments, broken up into two steps:
+
+```{bash, eval = FALSE}
+FASTQ_DIR="path/to/your/fastq/files"
+
+KALLISTO_INDEX="TRCI.idx"
+```
+
+```{bash}
+for R1_FILE in "$FASTQ_DIR"/*_R1.fastq.gz; do
+  R2_FILE="${R1_FILE/_R1/_R2}"
+  
+  BASE_NAME=$(basename "$R1_FILE" _R1.fastq.gz)
+  
+  OUTPUT_DIR="${FASTQ_DIR}/${BASE_NAME}_counts"
+ 
+  kallisto quant -i "$KALLISTO_INDEX" -o "$OUTPUT_DIR" "$R1_FILE" "$R2_FILE"
+done
+```
 
 
 
