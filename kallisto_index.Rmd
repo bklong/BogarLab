@@ -36,9 +36,21 @@ Add a file name for the kallisto index to be constructed.
 
 ```{bash, eval = FALSE}
 #cd to location of fasta file
-kallisto index -i TRCI.index Trucit1_1_EST_20220613_cluster_consensi.fasta.gz
+kallisto index -i TRCI.idx Trucit1_1_EST_20220613_cluster_consensi.fasta.gz
 ```
 
+Using Kallisto to produce counts data:
+
+Required arguments:
+-i, --index=STRING            
+Filename for the kallisto index to be used for quantification.
+
+-o, --output-dir=STRING       
+Directory to write output to.
+
+```{bash, eval = FALSE}
+kallisto quant -i TRCI.idx -o TRCI_counts pairA_1.fastq pairA_2.fastq pairB_1.fastq pairB_2.fastq
+```
 
 
 
