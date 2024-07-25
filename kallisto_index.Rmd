@@ -83,14 +83,16 @@ done
 
 without the comments, broken up into two steps:
 
+Here are the fungal samples - 19,26,27,30,45,52,62,87
+
 ```{bash, eval = FALSE}
-FASTQ_DIR="/Project_LBDG_DFD_DAG"
+FASTQ_DIR="/fungal_data"
 
 KALLISTO_INDEX="TRCI.idx"
 ```
 
 ```{bash}
-for R1_FILE in "$FASTQ_DIR"/*_R1.fastq.gz; do
+for R1_FILE in fungal_data/*_R1.fastq.gz; do
   R2_FILE="${R1_FILE/_R1/_R2}"
   
   BASE_NAME=$(basename "$R1_FILE" _R1.fastq.gz)
