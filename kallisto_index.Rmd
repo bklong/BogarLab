@@ -48,6 +48,8 @@ Filename for the kallisto index to be used for quantification.
 -o, --output-dir=STRING       
 Directory to write output to.
 
+kallisto can process either single-end or paired-end reads. The default running mode is paired-end and requires an even number of FASTQ files represented as pairs. Important note: only supply one sample at a time to kallisto. The multiple FASTQ (pair) option is for users who have samples that span multiple FASTQ files.
+
 ```{bash, eval = FALSE}
 kallisto quant -i TRCI.idx -o TRCI_counts pairA_1.fastq pairA_2.fastq pairB_1.fastq pairB_2.fastq
 ```
