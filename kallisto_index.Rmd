@@ -92,7 +92,7 @@ KALLISTO_INDEX="TRCI.idx"
 ```
 
 ```{bash}
-for R1_FILE in fungal_data/*_R1.fastq.gz; do
+for R1_FILE in "$FASTQ_DIR"/*_R1.fastq.gz; do
   R2_FILE="${R1_FILE/_R1/_R2}"
   
   BASE_NAME=$(basename "$R1_FILE" _R1.fastq.gz)
