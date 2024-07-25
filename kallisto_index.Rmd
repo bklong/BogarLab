@@ -64,6 +64,8 @@ screen -r kallisto #reconnects
 kallisto quant -i TRCI.idx -o DFD_019_counts DFD_019_T9_R1.fastq.gz DFD_019_T9_R2.fastq.gz
 ```
 
+took about an hour and a half to run above code, but seemingly worked!
+
 let's write a for loop to automate this for us:
 
 ```{bash, eval = FALSE}
