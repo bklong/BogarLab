@@ -50,6 +50,16 @@ Directory to write output to.
 
 kallisto can process either single-end or paired-end reads. The default running mode is paired-end and requires an even number of FASTQ files represented as pairs. Important note: only supply one sample at a time to kallisto. The multiple FASTQ (pair) option is for users who have samples that span multiple FASTQ files.
 
+running this on just one sample for now using screen to make sure it keeps running:
+
+```{bash, eval = FALSE}
+screen -S kallisto #makes new screen
+#Ctrl+A, then D disconnects
+screen -r kallisto #reconnects
+#will run in background even if you close the terminal
+```
+
+
 ```{bash, eval = FALSE}
 kallisto quant -i TRCI.idx -o DFD_019_counts DFD_019_T9_R1.fastq.gz DFD_019_T9_R2.fastq.gz
 ```
