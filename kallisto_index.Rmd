@@ -51,7 +51,7 @@ Directory to write output to.
 kallisto can process either single-end or paired-end reads. The default running mode is paired-end and requires an even number of FASTQ files represented as pairs. Important note: only supply one sample at a time to kallisto. The multiple FASTQ (pair) option is for users who have samples that span multiple FASTQ files.
 
 ```{bash, eval = FALSE}
-kallisto quant -i TRCI.idx -o TRCI_counts DFD_005_T28_R1.fastq.gz DFD_005_T28_R2.fastq.gz
+kallisto quant -i TRCI.idx -o DFD_005_counts DFD_005_T28_R1.fastq.gz DFD_005_T28_R2.fastq.gz
 ```
 
 let's write a for loop to automate this for us:
@@ -84,7 +84,7 @@ done
 without the comments, broken up into two steps:
 
 ```{bash, eval = FALSE}
-FASTQ_DIR="path/to/your/fastq/files"
+FASTQ_DIR="/Project_LBDG_DFD_DAG"
 
 KALLISTO_INDEX="TRCI.idx"
 ```
