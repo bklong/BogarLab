@@ -264,12 +264,12 @@ If we want to create a table of all differentially expressed genes at a given FD
 DEgene.trt <- topTags(trt.lrt,n = Inf,p.value = 0.01)$table
 
 #save to a file
-write.csv(DEgene.gt,"../output/DEgenes.gt.csv")
+write.csv(DEgene.trt,"DEgenes.trt.csv")
 
 #Or if we want all genes, regardless of FDR:
-DEgene.gt.all <- topTags(gt.lrt,n = Inf, p.value = 1)$table
+DEgene.trt.all <- topTags(trt.lrt,n = Inf, p.value = 1)$table
 #save to a file
-write.csv(DEgene.gt.all,"../output/DEgenes.gt.all.csv")
+write.csv(DEgene.trt.all,"DEgenes.trt.all.csv")
 ```
 
 **8. Examine the result.**
@@ -312,8 +312,8 @@ Treatments have effects on treatments. One species of fungus may express genes i
 Make the new model:
 
 ```{r}
-design.interaction <- model.matrix(~sp*trt,data = fungal.counts.new)
-rownames(design.interaction) <- fungal.counts.new$sample
+design.interaction <- model.matrix(~sp*trt,data = sample.description)
+rownames(design.interaction) <- sample.description$sample
 design.interaction
 ```
 
@@ -339,28 +339,28 @@ fit.interaction <- glmFit(dge.data.interaction, design.interaction)
 
 ```{r}
 #change coefficients as necessary
-gt.lrt.interaction <- glmLRT(fit.interaction,coef = "gtR500:trtDP")
+trt.lrt.interaction <- glmLRT(fit.interaction,coef = "spTCS:trtT")
 ```
 
 ```{r}
-topTags(gt.lrt.interaction) # the top 10 most differentially expressed genes
+topTags(trt.lrt.interaction) # the top 10 most differentially expressed genes
 ```
 
 ```{r}
-summary(decideTestsDGE(gt.lrt.interaction,p.value=0.01)) #This uses the FDR.  0.05 would be OK also.
+summary(decideTestsDGE(trt.lrt.interaction,p.value=0.01)) #This uses the FDR.  0.05 would be OK also.
 ```
 
 ```{r}
 #Extract genes with a FDR < 0.01 (could also use 0.05)
-DEgene.gt.interaction <- topTags(gt.lrt.interaction,n = Inf,p.value = 0.01)$table
+DEgene.trt.interaction <- topTags(trt.lrt.interaction,n = Inf,p.value = 0.01)$table
 
 #save to a file
-write.csv(DEgene.gt.interaction,"../output/DEgenes.gt.interaction.csv")
+write.csv(DEgene.trt.interaction,"../output/DEgenes.trt.interaction.csv")
 
 #Or if we want all genes, regardless of FDR:
-DEgene.gt.all.interaction <- topTags(gt.lrt.interaction,n = Inf, p.value = 1)$table
+DEgene.trt.all.interaction <- topTags(trt.lrt.interaction,n = Inf, p.value = 1)$table
 #save to a file
-write.csv(DEgene.gt.all.interaction,"../output/DEgenes.gt.all.interaction.csv")
+write.csv(DEgene.trt.all.interaction,"../output/DEgenes.trt.all.interaction.csv")
 ```
 
 We already made the function "plotDE"...I need to double check that the below chunk of code doesn't need to be changed for an interaction model. It seems like it doesn't.
