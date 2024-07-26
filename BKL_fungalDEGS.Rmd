@@ -26,41 +26,20 @@ Start:
 
 ```{bash, eval = FALSE}
 #take a look at fungal counts data
-head A03_counts.tsv #replace this file with fungal counts that you get back from core
+head TC_counts.tsv #replace this file with fungal counts that you get back from core
 ```
 
 ```{r}
 library(readr)
-fungal.counts <- read_tsv("../input/gh_internode_counts2.tsv") #assign fungal counts data to an object
-```
-
-"You may have noticed that the first gene_id is labelled"\*". These are the reads that did not map to a gene. Let's remove this row from the data. Also let's replace any"NA" records with "0" because that is what NA means in this case."
-
-```{r}
-#remove gene IDs labeled "*" and change NAs to 0s 
-
-library(tidyverse)
-
-fungal.counts <- fungal.counts %>% filter(gene_id!="*")
-fungal.counts[is.na(fungal.counts)] <- 0
-
-head(fungal.counts)
-```
-
-"The column names are too long. Use the `str_remove()` command to remove the".1_matched.merged.fq.bam" suffix from each column name. Although it doesn't matter in this case, surrounding the "pattern" inside of the function `fixed()` would be a good idea, because "." is a wildcard character."
-
-```{r}
-#shorten column names
-library(stringr)
-
-colnames(fungal.counts) <- str_remove(colnames(fungal.counts), fixed(".1_matched.merged.fq.bam"))
-
-colnames(fungal.counts)
+fungal.counts <- read_tsv("TC_counts.tsv") #assign fungal counts data to an object
+fungal.counts
 ```
 
 ```{r}
 #retain only the reads that were over 10 count in at least three samples
 fungal.counts <- fungal.counts[rowSums(fungal.counts[,-1] > 10) >= 3,]
+
+fungal.counts
 ```
 
 "We expect that read counts, especially from biological replicates, will be highly correlated. Check to see if this is the case using the `pairs()` function and the `cor()` function. Pairs should be applied to the (potentially log transformed) fungal.counts, NOT the correlation matrix."
