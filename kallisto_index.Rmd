@@ -115,6 +115,17 @@ for R1_FILE in "$FASTQ_DIR"/*_R1.fastq.gz; do
 done
 ```
 
+----------------
+My first attempt at mapping reads from sample 19 was successful!
+
+I will not move the files to my personal computer to analyze them further with R.
+
+Move files to personal computer to look at/analyze:
+
+```{bash, eval = FALSE}
+#this code goes in the personal computer terminal
+scp -P 22345 bklong@bogarprecision.plb.ucdavis.edu:/data/fungal_data/DFD_019_counts/abundance.tsv /c/Users/britt/Documents/R/TRCI_counts
+```
 
 
 
