@@ -272,6 +272,10 @@ DEgene.trt.all <- topTags(trt.lrt,n = Inf, p.value = 1)$table
 write.csv(DEgene.trt.all,"DEgenes.trt.all.csv")
 ```
 
+DID NOT GO FURTHER THAN BELOW THIS LINE
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
 **8. Examine the result.**
 
 Define a function to make a bar graph of genes of interest:
@@ -394,6 +398,8 @@ plotDE(rownames(DEgene.gt.interaction)[1:9],dge.data.interaction,fungal.counts.n
 ```
 
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+Have NOT tried to do anything below this line yet.
 
 Let's try with the biocore version instead...
 
