@@ -51,19 +51,19 @@ fungal.counts
 **Hint 3:** *remember that you will need to remove the \"gene_id\" column before using the data in `pairs` or `cor`*
 
 ```{r}
-fungal.counts <- fungal.counts[, -which(names(fungal.counts) == "target_id")]
+fungal.counts.noid <- fungal.counts[, -which(names(fungal.counts) == "target_id")]
 #remove target_id column
 
-fungal.counts
+fungal.counts.noid
 ```
 
 ```{r}
-transformed.counts <- log2(fungal.counts + 1) 
+transformed.counts <- log2(fungal.counts.noid + 1) 
 #log transform counts
 ```
 
 ```{r}
-cor.table <- cor(fungal.counts)
+cor.table <- cor(fungal.counts.noid)
 pairs(transformed.counts)
 ```
 
@@ -72,6 +72,7 @@ pairs(transformed.counts)
 ```{r}
 #rownames(cor.table) <- str_remove(rownames(cor.table), "_INTERNODE.*") #shorter names for better plotting
 #colnames(cor.table) <- str_remove(colnames(cor.table), "_INTERNODE.*")
+
 library(tidyverse)
 
 cor.table %>% gplots::heatmap.2(dendrogram="row", trace = "none", col=viridis::viridis(25, begin=.25), margins=c(7,8))
@@ -85,7 +86,7 @@ We need to tell EdgeR what groups our samples belong to. In order to do this we'
 
 ```{r}
 #make tibble with descriptions from counts data table
-sample.description <- tibble(sample=colnames(fungal.counts)[-1])
+sample.description <- tibble(sample=colnames(fungal.counts.noid))
 
 sample.description
 ```
@@ -99,27 +100,33 @@ make three more columns:
 3\. column "group" that has sp and trt pasted together with "\_" as a separator. You can use `str_c()` and the "sp" and "trt" columns for this.
 
 ```{r}
-#change these labels based on our sample names once we receive data back
 library(dplyr)
 library(stringr)
 
-fungal.counts.new <- sample.description %>%
+sample.description <- sample.description %>%
   mutate(
-    sp = str_extract(sample, "(TC|TCS)"),  
-    trt = str_extract(sample, "(C|T)"),     
-    group = str_c(sp, trt, sep = "_")              
+    sp = case_when(
+      str_detect(sample, "TCS") ~ "TCS",
+      str_detect(sample, "TC") ~ "TC",
+      TRUE ~ NA_character_
+    ),
+    trt = case_when(
+      str_detect(sample, "_C") ~ "C",
+      str_detect(sample, "_T") ~ "T",
+      TRUE ~ NA_character_
+    ),
+    group = str_c(sp, trt, sep = "_")
   )
 
-head(fungal.counts.new)
+sample.description
 ```
 
 ```{r}
-#change treatments according to our data
-fungal.counts.new <- fungal.counts.new %>%
-  mutate(gt=factor(gt), 
-         trt=factor(trt,levels = c("NDP","DP"))) # setting the levels in this way makes "NDP" the reference  
+sample.description <- sample.description %>%
+  mutate(sp=factor(sp), 
+         trt=factor(trt,levels = c("C","T"))) # setting the levels in this way makes "C" the reference  
 
-fungal.counts.new
+sample.description
 ```
 
 Calculate Normalization factors:
@@ -127,9 +134,10 @@ Calculate Normalization factors:
 EdgeR wants numeric data, so we must convert it first. Then we calculate normalization factors using TTM method.
 
 ```{r}
+#this part seems off
 library(edgeR)
-counts.matrix <- fungal.counts %>% select(-gene_id) %>% as.matrix()
-rownames(counts.matrix) <- fungal.counts$gene_id
+counts.matrix <- fungal.counts %>% select(-target_id) %>% as.matrix()
+rownames(counts.matrix) <- fungal.counts$target_id
 
 dge.data <- DGEList(counts=counts.matrix, 
                     group=sample.description$group)
@@ -153,7 +161,7 @@ mdsvals <- plotMDS(dge.data, plot = FALSE) # get the MDS values for plotting
 
 tibble(x=mdsvals$x, y=mdsvals$y, sample=rownames(dge.data$samples)) %>%
   inner_join(sample.description) %>%
-  ggplot(aes(x=x, y=y, color=trt, shape=gt)) +
+  ggplot(aes(x=x, y=y, color=trt, shape=sp)) +
   geom_point(size=3) 
 ```
 
