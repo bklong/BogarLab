@@ -226,11 +226,24 @@ sp.lrt <- glmLRT(fit,coef = "spTCS")
 **7. Test the significance of experimental parameters for explaining gene expression.**
 
 ```{r}
-topTags(trt.lrt) # the top 10 most differentially expressed genes between the two treatments (using the above model)
+top10.trt <- topTags(trt.lrt) # the top 10 most differentially expressed genes between the two treatments (using the above model)
+top10.trt
 ```
 
 ```{r}
-topTags(sp.lrt) # the top 10 most differentially expressed genes between the two species (using the above model)
+top10.sp <- topTags(sp.lrt) # the top 10 most differentially expressed genes between the two species (using the above model)
+top10.sp
+```
+
+```{r}
+top10.sp.trt <- topTags(trt.lrt.interaction) # the top 10 most differentially expressed genes between the two species (using the above model)
+top10.sp.trt
+```
+
+```{r}
+write.csv(top10.sp.trt,"top10.sp.trt.csv")
+write.csv(top10.sp,"top10.sp.csv")
+write.csv(top10.trt, "top10.trt.csv")
 ```
 
 In the resulting table from using topTags,
@@ -248,7 +261,7 @@ In the resulting table from using topTags,
 To summarize:
 
 ```{r}
-summary(decideTestsDGE(trt.lrt,p.value=0.01)) #This uses the FDR.  0.05 would be OK also.
+summary(decideTestsDGE(trt.lrt,p.value=0.99)) #This uses the FDR.  0.05 would be OK also.
 ```
 
 ```{r}
@@ -1105,11 +1118,11 @@ volcanoplot(fit2, coef=1, highlight=8, names=anno[match(rownames(fit2), anno$Gen
 
 #using a red and blue color scheme without traces and scaling each row
 
-heatmap.2(logcpm[rownames(top.table),],col=brewer.pal(11,"RdBu"),scale="row", trace="none")
+heatmap.2(logcpm[rownames(DEgene.trt.all),],col=brewer.pal(11,"RdBu"),scale="row", trace="none")
 
 
 
-anno[match(rownames(top.table), anno$Gene.stable.ID.version),
+anno[match(rownames(DEgene.trt.all), anno$Gene.stable.ID.version),
 
      c("Gene.stable.ID.version", "Gene.name")]
 
@@ -1117,7 +1130,7 @@ identical(anno[match(rownames(top.table), anno$Gene.stable.ID.version), "Gene.st
 
 
 
-heatmap.2(logcpm[rownames(top.table),],col=brewer.pal(11,"RdBu"),scale="row", trace="none", labRow = anno[match(rownames(top.table), anno$Gene.stable.ID.version), "Gene.name"])
+heatmap.2(logcpm[rownames(DEgene.trt.all),],col=brewer.pal(11,"RdBu"),scale="row", trace="none", labRow = anno[match(rownames(top.table), anno$Gene.stable.ID.version), "Gene.name"])
 
 ```
 
