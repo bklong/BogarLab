@@ -1,0 +1,127 @@
+---
+title: "BKLfungal_enrichment"
+author: "Britt"
+date: "2024-07-26"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**GO Enrichment Analysis (Assignment 11 from 180L)**
+
+```{r}
+library(tidyverse)
+library(goseq)
+library(rtracklayer)
+library(GenomicRanges)
+library(Biostrings)
+```
+
+Read in the DE gene list you made and give the list an informative column name.
+
+```{r}
+DEgene.trt <- read_csv("DEgenes.trt.csv")
+head(DEgene.trt)
+colnames(DEgene.trt)[1] <- "GeneID"
+head(DEgene.trt)
+```
+
+"Import the gene descriptions that you downloaded (File S9, above); pay attention to the `read_tsv`"col_names" argument. What is appropriate here? Use one of the `join()` functions (which one?) to add gene descriptions for the genes found to be regulated by the NDP/DP treatment. Output a table of the top **10** genes (based on FDR) that includes the output from edgeR and the descriptions. Have the description be the first (left-most) column so that you can see it in the output (*Hint: use tidyverse `select`, but be sure to keep the other columns*)."
+
+Make a dataframe that includes the genes differentially expressed in response to NDP/DP treatment and the descriptions of those genes:
+
+```{r}
+gene_descriptions <- read_tsv("../input/FileS9.txt", col_names = c("GeneID", "description"))
+
+gene_descriptions
+```
+
+```{r}
+genes <- left_join(DEgene.trt, gene_descriptions, by = "GeneID")
+
+genes
+```
+
+Make a dataframe that includes only the top 10 genes from the dataframe you just made based off of their FDR values:
+
+```{r}
+top_10_genes <- genes %>% 
+  arrange(FDR) %>% 
+  select(description, everything()) %>% 
+  head(10)
+
+top_10_genes
+```
+
+GO Enrichment
+
+assign relevant data to objects:
+
+```{r}
+go.terms <- read_tsv("../input/FileS11.txt",col_names=FALSE)
+head(go.terms)
+colnames(go.terms) <- c("GeneID","GO")
+head(go.terms)
+
+expressed.genes <- read_tsv("../input/internode_expressed_genes.txt")
+head(expressed.genes)
+names(expressed.genes) <- "GeneID"
+
+gene.lengths <- read_tsv("../input/Brapa_CDS_lengths.txt")
+head(gene.lengths)
+
+#we need to reduce the gene.length data to only contain entries for those genes in our expressed.genes set.  We also need this as a vector
+gene.lengths.vector <- gene.lengths$Length[gene.lengths$GeneID %in% expressed.genes$GeneID]
+names(gene.lengths.vector) <- gene.lengths$GeneID[gene.lengths$GeneID %in% expressed.genes$GeneID]
+head(gene.lengths.vector)
+
+#Do the reverse to make sure everything matches up (it seems that we don't have length info for some genes?)
+expressed.genes.match <- expressed.genes[expressed.genes$GeneID %in% names(gene.lengths.vector),]
+```
+
+format the data in preparation for enrichment analysis:
+
+```{r}
+go.list <- strsplit(go.terms$GO,split=",")
+names(go.list) <- go.terms$GeneID
+head(go.list)
+```
+
+```{r}
+#for each gene in expressed gene, return FALSE if it is not in DEgene.trt and TRUE if it is.
+DE.trt <- expressed.genes.match$GeneID %in% DEgene.trt$GeneID
+names(DE.trt) <- expressed.genes.match$GeneID
+head(DE.trt)
+
+DE.trt <- as.numeric(DE.trt) #convert to 0s and 1s
+head(DE.trt)
+sum(DE.trt) # number of DE genes
+```
+
+calculate over-representation (this is the actual enrichment analysis):
+
+```{r}
+#determines if there is bias due to gene length.  The plot shows the relationship.
+nullp.result <- nullp(DEgenes = DE.trt,bias.data = gene.lengths.vector)
+
+#calculate p-values for each GO term
+rownames(nullp.result) <- names(gene.lengths.vector) #because of a bug in nullp()
+GO.out <- goseq(pwf = nullp.result,gene2cat = go.list,test.cats=("GO:BP"))
+ 
+#list over-represented GO terms (p < 0.05) 
+GO.out[GO.out$over_represented_pvalue < 0.05,]
+```
+
+GO Visualization
+
+Make a table of the enrichment analysis results:
+
+```{r}
+write.table(GO.out[GO.out$over_represented_pvalue < 0.05,1:2],row.names=FALSE,file="../output/GO_terms.txt", quote = FALSE,col.names = FALSE)
+```
+
+Cut and paste the GO terms and p-values into REVIGO to visualize the analysis.
+
+Use <http://revigo.irb.hr/> (REVIGO) to visualize enrichment. (use website)
