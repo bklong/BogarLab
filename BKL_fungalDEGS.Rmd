@@ -33,6 +33,9 @@ head TC_counts.tsv #replace this file with fungal counts that you get back from 
 library(readr)
 fungal.counts <- read_tsv("TC_counts.tsv") #assign fungal counts data to an object
 fungal.counts
+
+fungal.counts.no30 <- read.csv("counts_data_no30 - counts_data.csv")
+fungal.counts.no30
 ```
 
 ```{r}
@@ -44,6 +47,13 @@ fungal.counts
 
 ```{r}
 write.csv(fungal.counts, "filtered.fungal.counts.csv")
+```
+
+```{r}
+#retain only the reads that were over 10 count in at least three samples
+fungal.counts.no30 <- fungal.counts.no30[rowSums(fungal.counts.no30[,-1] > 10) >= 3,]
+
+fungal.counts.no30
 ```
 
 "We expect that read counts, especially from biological replicates, will be highly correlated. Check to see if this is the case using the `pairs()` function and the `cor()` function. Pairs should be applied to the (potentially log transformed) fungal.counts, NOT the correlation matrix."
@@ -59,6 +69,11 @@ fungal.counts.noid <- fungal.counts[, -which(names(fungal.counts) == "target_id"
 #remove target_id column
 
 fungal.counts.noid
+
+fungal.counts.noidno30 <- fungal.counts[, -which(names(fungal.counts.no30) == "target_id")]
+#remove target_id column
+
+fungal.counts.noidno30
 ```
 
 ```{r}
@@ -123,6 +138,10 @@ sample.description <- sample.description %>%
   )
 
 sample.description
+```
+
+```{r}
+write.csv(sample.description, "sample.description.csv")
 ```
 
 ```{r}
@@ -242,6 +261,8 @@ top10.sp
 ```{r}
 top10.sp.trt <- topTags(trt.lrt.interaction) # the top 10 most differentially expressed genes between the two species (using the above model)
 top10.sp.trt
+test=trt.lrt$table
+FDR<- p.adjust(test$PValue,method="bonferroni") 
 ```
 
 ```{r}
