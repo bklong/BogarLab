@@ -42,6 +42,10 @@ fungal.counts <- fungal.counts[rowSums(fungal.counts[,-1] > 10) >= 3,]
 fungal.counts
 ```
 
+```{r}
+write.csv(fungal.counts, "filtered.fungal.counts.csv")
+```
+
 "We expect that read counts, especially from biological replicates, will be highly correlated. Check to see if this is the case using the `pairs()` function and the `cor()` function. Pairs should be applied to the (potentially log transformed) fungal.counts, NOT the correlation matrix."
 
 **Important Hint:** *`pairs` is slow on the full dataset. Try it on the first 1,000 genes. Do you need to transform to make the pairs output more meaningful?*
