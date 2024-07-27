@@ -46,6 +46,10 @@ trtDEGs
 Make a dataframe that includes the genes differentially expressed in response to NDP/DP treatment and the descriptions of those genes:
 
 ```{r}
+annotation <- read_tsv("Trucit1_1GeneCatalog_proteins_20220613_GO.tab.gz")
+```
+
+```{r}
 gene_descriptions <- read_tsv("../input/FileS9.txt", col_names = c("GeneID", "description"))
 
 gene_descriptions
