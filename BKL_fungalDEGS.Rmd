@@ -9,6 +9,18 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+To do:
+
+heatmap with website from zack
+
+pca from siyu
+
+blast sequence from genes of interest (top 10 differentially expressed)
+
+experiement with using smaller dataset (filter genes much more heavily), then redo DGE
+
+can also use smaller dataset to experiment with heatmap
+
 **Basic steps for DGE Analysis:**
 
 1.  Load the RNAseq counts.
