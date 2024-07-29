@@ -106,10 +106,19 @@ BoxDS_transformed <- BoxDS_step2 %>%
   mutate(Species = factor(Species, levels = c('NM', 'TC', 'S+T'))) %>%
   drop_na()  # Remove rows with NA values
 
+```
 ggplot(BoxDS_transformed, aes(x=Species,y=Rate,fill=Treatment))+
   geom_boxplot()+
   ylim(0,.25)+
   theme_minimal()
+```{r}
+ggplot(BoxDS_transformed, aes(x = Species, y = Rate, fill = Treatment)) +
+  geom_boxplot() +
+  coord_cartesian(ylim = c(0, 0.25)) +
+  scale_fill_manual(values = c('control' = 'purple', 'drought' = 'forestgreen')) +  # Replace with your actual levels
+  theme_minimal() +
+  theme(legend.position = "none")
+```
 
 #Trying to commit, will this work?
 ```
