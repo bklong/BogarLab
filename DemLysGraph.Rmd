@@ -53,22 +53,49 @@ last_three <- reshaped_data %>%
 
 last_and_third_to_last <- reshaped_data %>%
   group_by(ID) %>%
-  slice(c(1,3)) %>% # keep just last and third to last measurement
+  filter(row_number() == n() | row_number() == n() - 2) %>%
   ungroup()
+
+#last_and_third_to_last <- reshaped_data %>%
+  #group_by(ID) %>%
+  #slice(c(1,3)) %>% # keep just last and third to last measurement
+  #ungroup()
+
+#last_and_second_to_last <- reshaped_data %>%
+  #group_by(ID) %>%
+  #slice(c(3,2)) %>% # keep just last and second to last measurement
+  #ungroup()
 
 last_and_second_to_last <- reshaped_data %>%
   group_by(ID) %>%
-  slice(c(3,2)) %>% # keep just last and second to last measurement
+  slice_tail(n = 2) %>%
+  arrange(desc(row_number())) %>%  # Arrange in descending order to get second-to-last first
   ungroup()
 
 # now working to calculate hourly loss
+#hourly_loss <- last_and_third_to_last %>%
+  #arrange(ID, desc(newtime)) %>%
+  #group_by(ID) %>%
+  #summarize(massdiff_g = first(sample) - last(sample), # generates some confusing negative values, what's up?
+            #timediff = first(newtime) - last(newtime)) %>%
+  #mutate(mass_per_day = massdiff_g/as.numeric(timediff)) %>%
+  #mutate(mass_per_hr = mass_per_day/24) #24 hrs per day
+
 hourly_loss <- last_and_third_to_last %>%
   arrange(ID, desc(newtime)) %>%
   group_by(ID) %>%
-  summarize(massdiff_g = first(sample) - last(sample), # generates some confusing negative values, what's up?
-            timediff = first(newtime) - last(newtime)) %>%
-  mutate(mass_per_day = massdiff_g/as.numeric(timediff)) %>%
-  mutate(mass_per_hr = mass_per_day/24) #24 hrs per day
+  summarize(
+    first_sample = dplyr::first(sample),
+    last_sample = dplyr::last(sample),
+    massdiff_g = dplyr::first(sample) - dplyr::last(sample),
+    first_time = dplyr::first(newtime),
+    last_time = dplyr::last(newtime),
+    timediff = dplyr::first(newtime) - dplyr::last(newtime)
+  ) %>%
+  mutate(
+    mass_per_day = massdiff_g / as.numeric(timediff),
+    mass_per_hr = mass_per_day / 24
+  )
 
 # So, it looks like the last and third to last measurements do
 # NOT consistently capture the final 48 hrs. 
@@ -155,9 +182,10 @@ testplot <- ggplot(data = alltogether) +
   labs(color = "Treatment")
 
 print(testplot)
+```
 
 
-
+```{r}
 # DAG's boxplot ####
 
 ##Attempt at finding water loss/hr in positive values 
@@ -284,12 +312,13 @@ testplot <- ggplot(data = alltogether) +
   ylim(0, 0.25)
 
 print(testplot)
+```
 
+tutor:
 
-
-
-
+```{r}
 # Tutor's effort ####
+library(dplyr)
 
 LysimetryID <- read_excel("Lysimetry+Data+for+R.xlsx", range = "A1:A90")
 
@@ -360,7 +389,7 @@ ggplot(RateChange_long, aes(x = Date, y = Rate, group = ID, color = factor(ID)))
 
 # Boxplot
 
-Harvest_Data <- read_excel("Harvest Data.xlsx")%>%
+Harvest_Data <- read_csv("Treatment_key.csv")%>%
   select(Plant_ID,Species,Treatment)
 
 
@@ -369,16 +398,19 @@ BoxDS <- merge(Harvest_Data,RateChange_long,by.x='Plant_ID', by.y = 'ID')%>%
 write.csv(BoxDS, "BoxDS.csv", row.names = FALSE)
 
 BoxDS$Date <- as.Date(BoxDS$Date, format='%m/%d/%y')
-BoxDS <- BoxDS%>%
-  group_by(Plant_ID)%>%
-  arrange(desc(Date))%>%
-  slice(1:2)%>%
-  ungroup()%>%
-  select(-Plant_ID,-Date)%>%
-  mutate(Rate=Rate*-1)%>%
-  mutate(Species = factor(Species, levels = c('NM','RP','SP','TC','R+S','S+T')))
 
+BoxDS_step1 <- BoxDS %>%
+  group_by(Plant_ID) %>%
+  arrange(desc(Date))
 
+BoxDS_step2 <- BoxDS_step1 %>%
+  dplyr::slice(1:2)
+
+BoxDS_transformed <- BoxDS_step2 %>%
+  ungroup() %>%
+  select(-Plant_ID, -Date) %>%
+  mutate(Rate = Rate * -1) %>%
+  mutate(Species = factor(Species, levels = c('NM', 'RP', 'SP', 'TC', 'R+S', 'S+T')))
 
 ggplot(BoxDS, aes(x=Species,y=Rate,fill=Treatment))+
   geom_boxplot()+
@@ -489,4 +521,17 @@ print(timeline_plot)
 
 # Trying to subtract days watered from water usage
 ```
+```
+
+
+```
+
+BoxDS <- BoxDS %>%
+  group_by(Plant_ID) %>%
+  arrange(desc(Date)) %>%
+  slice(1:2) %>%
+  ungroup() %>%
+  select(-Plant_ID, -Date) %>%
+  mutate(Rate = Rate * -1) %>%
+  mutate(Species = factor(Species, levels = c('NM', 'RP', 'SP', 'TC', 'R+S', 'S+T')))
 

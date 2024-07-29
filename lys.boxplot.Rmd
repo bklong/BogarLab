@@ -1,0 +1,121 @@
+---
+title: "lysemitry_boxplot"
+author: "Britt"
+date: "2024-07-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Tutor's effort ####
+library(dplyr)
+
+LysimetryID <- read_excel("Lysimetry+Data+for+R.xlsx", range = "A1:A90")
+
+LysimetryTime <- read_excel("Lysimetry+Data+for+R.xlsx")%>%
+  select(c(contains("Time")))%>%
+  mutate(`Time07/11/23`=`Time07/11/23`+4017)
+
+
+# Create a new dataframe to store the differences
+TimeDiff <- data.frame(matrix(NA, nrow = nrow(LysimetryTime), ncol = ncol(LysimetryTime) - 1))
+
+for (i in 1:(ncol(LysimetryTime) - 1)) {
+  TimeDiff[, i] <- LysimetryTime[, i + 1] - LysimetryTime[, i]
+}
+# Rename columns of differences dataframe
+column_names <- colnames(LysimetryTime)[-1]
+
+colnames(TimeDiff) <- column_names
+
+TimeDiff <- TimeDiff*24
+# Tests
+sum(TimeDiff < 0, na.rm = TRUE)
+
+# Diff in Amount
+LysimetryMeasure <- read_excel("Lysimetry+Data+for+R.xlsx")%>%
+  select(-c( ID,contains("Time")))
+MeasureDiff <- data.frame(matrix(NA, nrow = nrow(LysimetryMeasure), ncol = ncol(LysimetryMeasure) - 1))
+
+for (i in 1:(ncol(LysimetryMeasure) - 1)) {
+  MeasureDiff[, i] <- LysimetryMeasure[, i + 1] - LysimetryMeasure[, i]
+}
+# Rename columns
+column_names <- colnames(LysimetryMeasure)[-1]
+
+colnames(MeasureDiff) <- column_names
+
+RateChange <- MeasureDiff/TimeDiff
+
+RateChange <- cbind(LysimetryID,RateChange)
+
+# Rename Columns
+colnames_df <- colnames(RateChange)
+colnames_df <- gsub("sample", "", colnames_df)
+colnames(RateChange) <- colnames_df
+
+write.csv(RateChange, "RateChange_modified.csv", row.names = FALSE)
+
+
+
+Lysimetry_Info <- read_excel("Lysimetry+Info.xlsx", sheet = "Days Watered")%>%
+  filter(ID=='NM04')%>%
+  pivot_longer(cols = -ID, names_to = "Date", values_to = "Rate")
+
+# Reshape the data
+RateChange_long <- RateChange %>%
+  pivot_longer(cols = -ID, names_to = "Date", values_to = "Rate")
+
+# Plotting
+ggplot(RateChange_long, aes(x = Date, y = Rate, group = ID, color = factor(ID))) +
+  geom_line() +
+  geom_vline(data = Lysimetry_Info %>% filter(Rate == 10), aes(xintercept = Date), color = "blue", linetype = "dashed") +
+  geom_vline(data = Lysimetry_Info %>% filter(Rate == 20), aes(xintercept = Date), color = "blue", linetype = "solid", size = 1) +
+  labs(title = "Weight Change Over Time (g)",
+       x = "Date",
+       y = "Rate") +
+  theme_minimal() +
+  theme(legend.position = "none", axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Boxplot
+
+Harvest_Data <- read_csv("Treatment_key.csv")%>%
+  select(Plant_ID,Species,Treatment)
+
+
+BoxDS <- merge(Harvest_Data,RateChange_long,by.x='Plant_ID', by.y = 'ID')%>%
+  na.omit()
+write.csv(BoxDS, "BoxDS.csv", row.names = FALSE)
+
+BoxDS$Date <- as.Date(BoxDS$Date, format='%m/%d/%y')
+
+BoxDS_step1 <- BoxDS %>%
+  group_by(Plant_ID) %>%
+  arrange(desc(Date))
+
+BoxDS_step2 <- BoxDS_step1 %>%
+  dplyr::slice(1:2)
+
+BoxDS_transformed <- BoxDS_step2 %>%
+  ungroup() %>%
+  select(-Plant_ID, -Date) %>%
+  mutate(Rate = Rate * -1) %>%
+  mutate(Species = factor(Species, levels = c('NM', 'TC', 'S+T'))) %>%
+  drop_na()  # Remove rows with NA values
+
+ggplot(BoxDS_transformed, aes(x=Species,y=Rate,fill=Treatment))+
+  geom_boxplot()+
+  ylim(0,.25)+
+  theme_minimal()
+
+#Trying to commit, will this work?
+```
+
+
+
+
+
+
