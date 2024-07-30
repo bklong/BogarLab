@@ -19,17 +19,17 @@ pca from siyu
 
 blast sequence from genes of interest (top 10 differentially expressed)
 
-experiement with using smaller dataset (filter genes much more heavily), then redo DGE
-
-can also use smaller dataset to experiment with heatmap
-
-PERMANOVA betadisper (Laura)
-
-watering regime and lysemitry time frame (in figure title)
+watering regime
 
 units for heatmap?
 
 format references: capitalize first letter of title, italicize species names
+
+\-\-\-\-\-\-\-\-\--
+
+PERMANOVA betadisper (Laura), tried...got 0.7 p value
+
+and lysemitry time frame (in figure title)
 
 **Basic steps for DGE Analysis:**
 
@@ -1220,5 +1220,40 @@ download.file("https://raw.githubusercontent.com/ucdavis-bioinformatics-training
 ```{r}
 
 sessionInfo()
+
+```
+
+\-\-\-\-\-\-\-\-\-\-\--
+
+```{r}
+# Calculate log-transformed CPM (counts per million) values
+#logCPM <- cpm(dge.data, log=TRUE)
+
+# Compute Bray-Curtis distance matrix
+bray_curtis <- vegdist(t(fungal.counts.normal), method = "bray")
+ bray_curtis
+```
+
+```{r}
+# Perform betadisper analysis
+betadisper_result <- betadisper(bray_curtis, sample.description$trt)
+
+# View results
+print(betadisper_result)
+
+# Plot the distances to centroids
+plot(betadisper_result)
+
+# Add group labels to the plot
+boxplot(betadisper_result, main = "Beta Dispersion")
+
+```
+
+```{r}
+# Perform permutation test
+permutest_result <- permutest(betadisper_result, permutations = 999)
+
+# View permutation test results
+print(permutest_result)
 
 ```
