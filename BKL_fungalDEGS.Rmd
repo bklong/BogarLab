@@ -13,6 +13,8 @@ To do:
 
 heatmap with website from zack
 
+pca from zach...know what the outlier is
+
 pca from siyu
 
 blast sequence from genes of interest (top 10 differentially expressed)
@@ -20,6 +22,14 @@ blast sequence from genes of interest (top 10 differentially expressed)
 experiement with using smaller dataset (filter genes much more heavily), then redo DGE
 
 can also use smaller dataset to experiment with heatmap
+
+PERMANOVA betadisper (Laura)
+
+watering regime and lysemitry time frame (in figure title)
+
+units for heatmap?
+
+format references: capitalize first letter of title, italicize species names
 
 **Basic steps for DGE Analysis:**
 
