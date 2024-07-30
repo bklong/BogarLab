@@ -112,12 +112,17 @@ ggplot(BoxDS_transformed, aes(x=Species,y=Rate,fill=Treatment))+
   ylim(0,.25)+
   theme_minimal()
 ```{r}
+library(ggplot2)
+
 ggplot(BoxDS_transformed, aes(x = Species, y = Rate, fill = Treatment)) +
   geom_boxplot() +
+  geom_jitter(position = position_jitter(0.2), alpha = 0.5) +  # Add jittered data points
   coord_cartesian(ylim = c(0, 0.25)) +
   scale_fill_manual(values = c('control' = 'purple', 'drought' = 'forestgreen')) +  # Replace with your actual levels
   theme_minimal() +
-  theme(legend.position = "none")
+  theme(legend.position = "none") +
+  labs(y = "Water Use Rate (g/hour)")  # Change the y-axis label
+
 ```
 
 #Trying to commit, will this work?
