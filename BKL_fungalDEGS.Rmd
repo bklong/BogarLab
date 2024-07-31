@@ -222,7 +222,7 @@ fungal.counts.normal.log <- cpm(dge.data,log = TRUE)
 ```
 
 ```{r}
-write.csv(fungal.counts.normal.log, file = "fungal.counts.normal.log.csv", row.names = FALSE)
+write.csv(fungal.counts.normal.log, file = "fungal.counts.normal.log.csv")
 ```
 
 **5. Determine the dispersion parameter (how over-dispersed is the data?)**
@@ -334,6 +334,11 @@ write.csv(DEgene.trt,"DEgenes.trt.csv")
 DEgene.trt.all <- topTags(trt.lrt,n = Inf, p.value = 1)$table
 #save to a file
 write.csv(DEgene.trt.all,"DEgenes.trt.all.csv")
+```
+
+```{r}
+all_results <- topTags(trt.lrt, n = Inf)$table
+write.csv(all_results,"all.csv")
 ```
 
 DID NOT GO FURTHER THAN BELOW THIS LINE
