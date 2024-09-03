@@ -1,0 +1,20 @@
+---
+title: "Bradley DEGs"
+author: "Britt"
+date: "2024-09-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Download counts tables from Bogar server:
+```{bash, eval = FALSE}
+#in personal computer terminal:
+
+scp -P 22345 bklong@bogarprecision.plb.ucdavis.edu:~/DemRNAanalysis/BioShare/04-Counts/Psme_RNASeq_July2024_Psme.1_0_counts.txt /c/Users/britt/Downloads
+
+scp -P 22345 bklong@bogarprecision.plb.ucdavis.edu:~/DemRNAanalysis/BioShare/04-Counts/Psme_RNASeq_July2024_Trucit1_1_counts.txt /c/Users/britt/Downloads
+```
+
