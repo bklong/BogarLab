@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 Download counts tables from Bogar server:
+
 ```{bash, eval = FALSE}
 #in personal computer terminal:
 
@@ -18,3 +19,21 @@ scp -P 22345 bklong@bogarprecision.plb.ucdavis.edu:~/DemRNAanalysis/BioShare/04-
 scp -P 22345 bklong@bogarprecision.plb.ucdavis.edu:~/DemRNAanalysis/BioShare/04-Counts/Psme_RNASeq_July2024_Trucit1_1_counts.txt /c/Users/britt/Downloads
 ```
 
+The counts tables are now on my personal computer where R can access them.
+
+**Basic steps for DGE Analysis:**
+
+1.  Load the RNAseq counts.
+2.  Normalize the counts.
+3.  QC the counts.
+4.  Create a data frame that describes the experiment.
+5.  Determine the dispersion parameter (how over-dispersed is the data?)
+6.  Fit a statistical model for gene expression as a function of experimental parameters.
+7.  Test the significance of experimental parameters for explaining gene expression.
+8.  Examine result.
+
+Let's take a look at the data:
+
+```{r}
+head 
+```
