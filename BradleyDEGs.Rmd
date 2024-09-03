@@ -58,3 +58,31 @@ PM_counts <- PM_counts[rowSums(PM_counts[,-1] > 10) >= 3,]
 
 PM_counts
 ```
+
+Remove Transcript ID column (convert dataframe to tibble).
+
+```{r}
+library(tibble)
+
+TC_counts_noid <- as_tibble(TC_counts)
+
+TC_counts_noid
+
+PM_counts_noid <- as_tibble(PM_counts)
+
+PM_counts_noid
+```
+
+Log transform the counts data.
+
+```{r}
+transformed.TC.counts <- log2(TC_counts_noid + 1) 
+transformed.PM.counts <- log2(PM_counts_noid + 1)
+```
+
+Correlation table and pairs:
+
+```{r}
+cor.table.TC <- cor(TC_counts_noid)
+pairs(transformed.TC.counts)
+```
