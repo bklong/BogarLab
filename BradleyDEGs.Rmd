@@ -44,3 +44,17 @@ PM_counts
 TC_counts <- read.table("Psme_RNASeq_July2024_Trucit1_1_counts.txt", header = TRUE) 
 TC_counts
 ```
+
+Filter the counts data so that you only retain genes that were expressed:
+
+```{r}
+#retain only the reads that were over 10 count in at least three samples
+
+TC_counts <- TC_counts[rowSums(TC_counts[,-1] > 10) >= 3,]
+
+TC_counts
+
+PM_counts <- PM_counts[rowSums(PM_counts[,-1] > 10) >= 3,]
+
+PM_counts
+```
