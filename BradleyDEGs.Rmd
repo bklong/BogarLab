@@ -35,5 +35,12 @@ The counts tables are now on my personal computer where R can access them.
 Let's take a look at the data:
 
 ```{r}
-head 
+PM_counts <- read.table("Psme_RNASeq_July2024_Psme.1_0_counts.txt", header = TRUE) 
+
+PM_counts
+```
+
+```{r}
+TC_counts <- read.table("Psme_RNASeq_July2024_Trucit1_1_counts.txt", header = TRUE) 
+TC_counts
 ```
