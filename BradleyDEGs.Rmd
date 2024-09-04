@@ -125,3 +125,54 @@ sample.description <- sample.description %>%
   slice(1:(n() - 1))
 sample.description
 ```
+
+```{r}
+sample.description <- sample.description %>%
+  mutate(sp=factor(sp), 
+         trt=factor(trt,levels = c("C","T"))) # setting the levels in this way makes "C" the reference  
+
+sample.description
+```
+
+Focusing on PM analysis here on out for now:
+
+```{r}
+library(edgeR)
+
+counts.matrix.PM <- PM_counts %>% as.matrix()
+
+counts.matrix.PM
+```
+
+```{r}
+#remove unassigned row
+
+counts.matrix.PM <- counts.matrix.PM[, -21]
+
+counts.matrix.PM
+```
+
+```{r}
+dge.data.PM <- DGEList(counts=counts.matrix.PM, 
+                    group=sample.description$group)
+dim(dge.data.PM) 
+dge.data.PM <- calcNormFactors(dge.data.PM, method = "TMM")
+dge.data.PM$samples # look at the normalization factors
+```
+
+MDS plot:
+
+```{r}
+plotMDS(dge.data.PM)
+```
+
+Nicer MDS:
+
+```{r}
+mdsvals <- plotMDS(dge.data.PM, plot = FALSE) # get the MDS values for plotting
+
+tibble(x=mdsvals$x, y=mdsvals$y, sample=rownames(dge.data.PM$samples)) %>%
+  inner_join(sample.description) %>%
+  ggplot(aes(x=x, y=y, color=trt, shape=sp)) +
+  geom_point(size=3) 
+```
