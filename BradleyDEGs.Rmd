@@ -176,3 +176,60 @@ tibble(x=mdsvals$x, y=mdsvals$y, sample=rownames(dge.data.PM$samples)) %>%
   ggplot(aes(x=x, y=y, color=trt, shape=sp)) +
   geom_point(size=3) 
 ```
+
+```{r}
+#does this even get used somewhere? this may be an area to ask for help in...may be a mistake
+
+fungal.counts.normal.PM <- cpm(dge.data.PM) 
+
+# or log2 transformed:
+fungal.counts.normal.log.PM <- cpm(dge.data.PM,log = TRUE)
+```
+
+```{r}
+#sample.description is the original descriptive dataset (describes our samples but doesn't have counts data)
+
+design.PM <- model.matrix(~sp+trt,data = sample.description)
+rownames(design.PM) <- sample.description$sample
+design.PM
+```
+
+```{r}
+#First the overall dispersion
+dge.data.PM <- estimateGLMCommonDisp(dge.data.PM,design.PM,verbose = TRUE)
+
+#Then a trended dispersion based on count level
+dge.data.PM <- estimateGLMTrendedDisp(dge.data.PM,design.PM)
+
+#And lastly we calculate the gene-wise dispersion, using the prior estimates to "squeeze" the dispersion towards the common dispersion.
+dge.data.PM <- estimateGLMTagwiseDisp(dge.data.PM,design.PM)
+
+#We can examine this with a plot
+plotBCV(dge.data.PM)
+```
+
+```{r}
+#this is the full model with all coefficients
+#dge.data is the normalized count data
+fit.PM <- glmFit(dge.data.PM, design.PM)
+```
+
+```{r}
+#this model looks at genes differentially expressed between two treatments
+trt.lrt.PM <- glmLRT(fit.PM,coef = "trtT")
+```
+
+```{r}
+#this model between species
+#there are three species...how to fix?
+sp.lrt.PM <- glmLRT(fit.PM,coef = "spTCS")
+```
+
+```{r}
+top10.trt.PM <- topTags(trt.lrt.PM) # the top 10 most differentially expressed genes between the two treatments (using the above model)
+top10.trt.PM
+```
+
+```{r}
+summary(decideTestsDGE(trt.lrt.PM,p.value=0.01)) #This uses the FDR.  0.05 would be OK also.
+```
