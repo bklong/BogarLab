@@ -84,5 +84,27 @@ Correlation table and pairs:
 
 ```{r}
 cor.table.TC <- cor(TC_counts_noid)
+cor.table.PM <- cor(PM_counts_noid)
+```
+
+```{r}
+pairs(transformed.PM.counts)
 pairs(transformed.TC.counts)
+```
+
+```{r}
+library(tidyverse)
+
+cor.table.PM %>% gplots::heatmap.2(dendrogram="row", trace = "none", col=viridis::viridis(25, begin=.25), margins=c(4,4))
+```
+
+```{r}
+cor.table.TC %>% gplots::heatmap.2(dendrogram="row", trace = "none", col=viridis::viridis(25, begin=.25), margins=c(4,4))
+```
+
+```{r}
+#make tibble with descriptions from counts data table
+sample.description <- tibble(sample=colnames(TC_counts_noid))
+
+sample.description
 ```
