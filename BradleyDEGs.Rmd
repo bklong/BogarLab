@@ -108,3 +108,20 @@ sample.description <- tibble(sample=colnames(TC_counts_noid))
 
 sample.description
 ```
+
+```{r}
+sample.description <- sample.description %>%
+  mutate(
+    sp = c("NM", "NM", "NM", "NM", "ST", "NM", "TC", "ST", "ST", "NM", "TC", "NM", "NM", "ST", "NM", "ST", "NM", "NM", "NM", "ST", "NA"),  
+    trt = c("C", "C", "T", "C", "C", "T", "T", "T", "C", "C", "C", "C", "T", "T", "C", "C", "C", "T", "T", "T", "NA"),  
+    group = paste(sp, trt, sep = "_")
+  )
+
+sample.description
+```
+
+```{r}
+sample.description <- sample.description %>%
+  slice(1:(n() - 1))
+sample.description
+```
