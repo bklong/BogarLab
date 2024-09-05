@@ -271,3 +271,9 @@ summary(decideTestsDGE(sp.lrt.PM.TC,p.value=0.01)) #This uses the FDR.  0.05 wou
 ```{r}
 summary(decideTestsDGE(sp.lrt.PM.ST,p.value=0.01)) #This uses the FDR.  0.05 would be OK also.
 ```
+
+to do:
+
+interaction DEGs for PM,
+
+all of DEGs for TC
