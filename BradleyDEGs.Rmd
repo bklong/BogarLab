@@ -222,7 +222,33 @@ trt.lrt.PM <- glmLRT(fit.PM,coef = "trtT")
 ```{r}
 #this model between species
 #there are three species...how to fix?
-sp.lrt.PM <- glmLRT(fit.PM,coef = "spTCS")
+# Create a contrast vector
+# The vector should be 1 for the intercept (reference level) and -0.5 for each non-reference level in the comparison
+contrast <- c(1, -0.5, -0.5, 0)  
+# Adjust according to your design matrix columns
+
+# Perform the likelihood ratio test with the custom contrast
+sp.lrt.PM <- glmLRT(fit.PM,contrast = contrast)
+```
+
+```{r}
+sp.lrt.PM.TC <- glmLRT(fit.PM,coef = "spTC")
+sp.lrt.PM.ST <- glmLRT(fit.PM, coef = "spST")
+```
+
+```{r}
+top10.sp.PM.ST <- topTags(sp.lrt.PM.ST) # the top 10 most differentially expressed genes between the two treatments (using the above model)
+top10.sp.PM.ST
+```
+
+```{r}
+top10.sp.PM.TC <- topTags(sp.lrt.PM.TC) # the top 10 most differentially expressed genes between the two treatments (using the above model)
+top10.sp.PM.TC
+```
+
+```{r}
+top10.sp.PM <- topTags(sp.lrt.PM) # the top 10 most differentially expressed genes between the two treatments (using the above model)
+top10.sp.PM
 ```
 
 ```{r}
@@ -232,4 +258,16 @@ top10.trt.PM
 
 ```{r}
 summary(decideTestsDGE(trt.lrt.PM,p.value=0.01)) #This uses the FDR.  0.05 would be OK also.
+```
+
+```{r}
+summary(decideTestsDGE(sp.lrt.PM,p.value=0.01)) #This uses the FDR.  0.05 would be OK also.
+```
+
+```{r}
+summary(decideTestsDGE(sp.lrt.PM.TC,p.value=0.01)) #This uses the FDR.  0.05 would be OK also.
+```
+
+```{r}
+summary(decideTestsDGE(sp.lrt.PM.ST,p.value=0.01)) #This uses the FDR.  0.05 would be OK also.
 ```
