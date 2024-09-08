@@ -180,10 +180,10 @@ tibble(x=mdsvals$x, y=mdsvals$y, sample=rownames(dge.data.PM$samples)) %>%
 ```{r}
 #does this even get used somewhere? this may be an area to ask for help in...may be a mistake
 
-fungal.counts.normal.PM <- cpm(dge.data.PM) 
+PM.counts.normal <- cpm(dge.data.PM) 
 
 # or log2 transformed:
-fungal.counts.normal.log.PM <- cpm(dge.data.PM,log = TRUE)
+PM.counts.normal.log <- cpm(dge.data.PM,log = TRUE)
 ```
 
 ```{r}
@@ -272,7 +272,18 @@ summary(decideTestsDGE(sp.lrt.PM.TC,p.value=0.01)) #This uses the FDR.  0.05 wou
 summary(decideTestsDGE(sp.lrt.PM.ST,p.value=0.01)) #This uses the FDR.  0.05 would be OK also.
 ```
 
+heatmap attempt:
+
+```{r}
+library(pheatmap)
+pheatmap(PM.counts.normal.log, scale = "row")
+```
+
 to do:
+
+visualization for PM DEGs
+
+annotation for PM DEGs
 
 interaction DEGs for PM,
 
