@@ -279,6 +279,15 @@ library(pheatmap)
 pheatmap(PM.counts.normal.log, scale = "row")
 ```
 
+```{r}
+# Subset for top genes
+top_genes_trt <- rownames(topTags(trt.lrt.PM, n = 50)$table)
+top50PMtrt <- PM.counts.normal.log[top_genes, ]
+
+#write .csv file
+write.csv(top50PM, file = "top50PMtrt.csv")
+```
+
 to do:
 
 visualization for PM DEGs
