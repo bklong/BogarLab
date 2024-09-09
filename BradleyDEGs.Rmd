@@ -372,6 +372,10 @@ write.csv(PM.ST.interaction,"PM.ST.interaction.csv")
 write.csv(PM.TC.interaction,"PM.TC.interaction.csv")
 ```
 
+```{bash, eval = FALSE}
+zgrep ">PSME_30375" Psme.1_0.fa.gz
+```
+
 to do:
 
 visualization for PM DEGs
