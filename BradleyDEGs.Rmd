@@ -527,6 +527,6 @@ visualization
 
 annotation
 
-all DEGs (trt, sp, interaction)
+figure out interaction DEGs (same as PM w multiple levels of factors)
 
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
