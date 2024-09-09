@@ -288,6 +288,46 @@ top50PMtrt <- PM.counts.normal.log[top_genes, ]
 write.csv(top50PM, file = "top50PMtrt.csv")
 ```
 
+interaction DEGs for PM:
+
+```{r}
+design.PM.interaction <- model.matrix(~sp*trt,data = sample.description)
+
+rownames(design.PM.interaction) <- sample.description$sample
+
+design.PM.interaction
+```
+
+```{r}
+#First the overall dispersion
+dge.data.PM.interaction <- estimateGLMCommonDisp(dge.data.PM,design.PM.interaction,verbose = TRUE)
+
+#Then a trended dispersion based on count level
+dge.data.PM.interaction <- estimateGLMTrendedDisp(dge.data.PM.interaction,design.PM.interaction)
+
+#And lastly we calculate the gene-wise dispersion, using the prior estimates to "squeeze" the dispersion towards the common dispersion.
+dge.data.PM.interaction <- estimateGLMTagwiseDisp(dge.data.PM.interaction,design.PM.interaction)
+
+#We can examine this with a plot
+plotBCV(dge.data.PM.interaction)
+```
+
+```{r}
+fit.interaction.PM <- glmFit(dge.data.PM.interaction, design.PM.interaction)
+```
+
+```{r}
+lrt.interaction.PM <- glmLRT(fit.interaction.PM,coef = "spST:trtT")
+```
+
+```{r}
+topTags(lrt.interaction.PM) # the top 10 most differentially expressed genes
+```
+
+```{r}
+summary(decideTestsDGE(lrt.interaction.PM,p.value=0.05)) #This uses the FDR.  0.05 would be OK also.
+```
+
 to do:
 
 visualization for PM DEGs
