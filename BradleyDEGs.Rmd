@@ -21,7 +21,9 @@ scp -P 22345 bklong@bogarprecision.plb.ucdavis.edu:~/DemRNAanalysis/BioShare/04-
 
 The counts tables are now on my personal computer where R can access them.
 
-**Basic steps for DGE Analysis:**
+### Tree counts analysis:
+
+**Basic steps for DGE Analysis**
 
 1.  Load the RNAseq counts.
 2.  Normalize the counts.
@@ -376,12 +378,43 @@ write.csv(PM.TC.interaction,"PM.TC.interaction.csv")
 zgrep ">PSME_30375" Psme.1_0.fa.gz
 ```
 
-to do:
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+PM to do:
 
 visualization for PM DEGs
 
 annotation for PM DEGs
 
-interaction DEGs for PM (difficult)
+interaction DEGs for PM (between 3 sp and 2 trt, tricky)
 
-all of DEGs for TC
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+### Fungal Counts Analysis:
+
+**Basic steps for DGE Analysis**
+
+1.  Load the RNAseq counts.
+2.  Normalize the counts.
+3.  QC the counts.
+4.  Create a data frame that describes the experiment.
+5.  Determine the dispersion parameter (how over-dispersed is the data?)
+6.  Fit a statistical model for gene expression as a function of experimental parameters.
+7.  Test the significance of experimental parameters for explaining gene expression.
+8.  Examine result.
+
+```{r}
+
+```
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+TC to do:
+
+visualization
+
+annotation
+
+all DEGs (trt, sp, interaction)
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
