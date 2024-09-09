@@ -512,11 +512,11 @@ topTags(lrt.interaction.TC2)
 ```
 
 ```{r}
-summary(decideTestsDGE(trt.lrt.TC, p.value = 0.01))
-summary(decideTestsDGE(sp.lrt.TC.ST, p.value=0.01))
-summary(decideTestsDGE(sp.lrt.TC.TC, p.value=0.01))
-summary(decideTestsDGE(lrt.interaction.TC, p.value=0.01))
-summary(decideTestsDGE(lrt.interaction.TC2, p.value=0.01))
+summary(decideTestsDGE(trt.lrt.TC, p.value = 0.05))
+summary(decideTestsDGE(sp.lrt.TC.ST, p.value=0.05))
+summary(decideTestsDGE(sp.lrt.TC.TC, p.value=0.05))
+summary(decideTestsDGE(lrt.interaction.TC, p.value=0.05))
+summary(decideTestsDGE(lrt.interaction.TC2, p.value=0.05))
 ```
 
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
