@@ -361,6 +361,17 @@ summary(decideTestsDGE(lrt.interaction.PM2, p.value=0.01))
 summary(decideTestsDGE(lrt.interaction.PM,p.value=0.01)) #This uses the FDR.  0.05 would be OK also.
 ```
 
+```{r}
+#Extract genes with a FDR < 0.01 (could also use 0.05)
+PM.ST.interaction <- topTags(lrt.interaction.PM,n = Inf,p.value = 0.01)$table
+
+PM.TC.interaction <- topTags(lrt.interaction.PM2, n = Inf, p.value = 0.01)$table
+
+#save to a file
+write.csv(PM.ST.interaction,"PM.ST.interaction.csv")
+write.csv(PM.TC.interaction,"PM.TC.interaction.csv")
+```
+
 to do:
 
 visualization for PM DEGs
