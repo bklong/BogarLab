@@ -317,7 +317,24 @@ fit.interaction.PM <- glmFit(dge.data.PM.interaction, design.PM.interaction)
 ```
 
 ```{r}
-lrt.interaction.PM <- glmLRT(fit.interaction.PM,coef = "spST:trtT")
+#I can't figure this out
+
+# Original interaction term name
+STinteraction <- "spST:trtT"
+TCinteraction <- "spTC:trtT"
+
+# Convert it to a valid name
+STinteraction <- make.names(STinteraction)
+TCinteraction <- make.names(TCinteraction)
+
+# Use this valid name in makeContrasts
+contrast.matrix <- makeContrasts(
+    interaction1 = STinteraction,
+    interaction2 = TCinteraction,
+    levels = design.PM.interaction
+)
+
+lrt.interaction.PM <- glmLRT(fit.PM, contrast = contrast.matrix)
 ```
 
 ```{r}
