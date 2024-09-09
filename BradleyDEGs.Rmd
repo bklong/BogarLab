@@ -316,7 +316,7 @@ plotBCV(dge.data.PM.interaction)
 fit.interaction.PM <- glmFit(dge.data.PM.interaction, design.PM.interaction)
 ```
 
-```{r}
+```{r, eval = FALSE}
 #I can't figure this out
 
 # Original interaction term name
@@ -338,11 +338,27 @@ lrt.interaction.PM <- glmLRT(fit.PM, contrast = contrast.matrix)
 ```
 
 ```{r}
+lrt.interaction.PM <- glmLRT(fit.interaction.PM, coef = "spST:trtT")
+```
+
+```{r}
+lrt.interaction.PM2 <- glmLRT(fit.interaction.PM, coef = "spTC:trtT")
+```
+
+```{r}
 topTags(lrt.interaction.PM) # the top 10 most differentially expressed genes
 ```
 
 ```{r}
-summary(decideTestsDGE(lrt.interaction.PM,p.value=0.05)) #This uses the FDR.  0.05 would be OK also.
+topTags(lrt.interaction.PM2)
+```
+
+```{r}
+summary(decideTestsDGE(lrt.interaction.PM2, p.value=0.01))
+```
+
+```{r}
+summary(decideTestsDGE(lrt.interaction.PM,p.value=0.01)) #This uses the FDR.  0.05 would be OK also.
 ```
 
 to do:
@@ -351,6 +367,6 @@ visualization for PM DEGs
 
 annotation for PM DEGs
 
-interaction DEGs for PM,
+interaction DEGs for PM (difficult)
 
 all of DEGs for TC
