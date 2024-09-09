@@ -21,7 +21,7 @@ scp -P 22345 bklong@bogarprecision.plb.ucdavis.edu:~/DemRNAanalysis/BioShare/04-
 
 The counts tables are now on my personal computer where R can access them.
 
-### Tree counts analysis:
+### Starting Analysis for Both:
 
 **Basic steps for DGE Analysis**
 
@@ -136,7 +136,7 @@ sample.description <- sample.description %>%
 sample.description
 ```
 
-Focusing on PM analysis here on out for now:
+### Tree Counts Analysis:
 
 ```{r}
 library(edgeR)
@@ -404,7 +404,119 @@ interaction DEGs for PM (between 3 sp and 2 trt, tricky)
 8.  Examine result.
 
 ```{r}
+counts.matrix.TC <- TC_counts %>% as.matrix()
 
+counts.matrix.TC
+```
+
+```{r}
+#remove unassigned row
+
+counts.matrix.TC <- counts.matrix.TC[, -21]
+
+counts.matrix.TC
+```
+
+```{r}
+dge.data.TC <- DGEList(counts=counts.matrix.TC, 
+                    group=sample.description$group)
+dim(dge.data.TC) 
+dge.data.TC <- calcNormFactors(dge.data.TC, method = "TMM")
+dge.data.TC$samples # look at the normalization factors
+```
+
+MDS:
+
+```{r}
+mdsvals <- plotMDS(dge.data.TC, plot = FALSE) # get the MDS values for plotting
+
+tibble(x=mdsvals$x, y=mdsvals$y, sample=rownames(dge.data.TC$samples)) %>%
+  inner_join(sample.description) %>%
+  ggplot(aes(x=x, y=y, color=trt, shape=sp)) +
+  geom_point(size=3) 
+```
+
+```{r}
+TC.counts.normal <- cpm(dge.data.TC) 
+
+# or log2 transformed:
+TC.counts.normal.log <- cpm(dge.data.TC,log = TRUE)
+```
+
+```{r}
+design.TC <- model.matrix(~sp+trt,data = sample.description)
+rownames(design.TC) <- sample.description$sample
+design.TC
+```
+
+```{r}
+design.TC.interaction <- model.matrix(~sp*trt,data = sample.description)
+rownames(design.TC) <- sample.description$sample
+design.TC
+```
+
+```{r}
+#First the overall dispersion
+dge.data.TC <- estimateGLMCommonDisp(dge.data.TC,design.TC,verbose = TRUE)
+
+#Then a trended dispersion based on count level
+dge.data.TC <- estimateGLMTrendedDisp(dge.data.TC,design.TC)
+
+#And lastly we calculate the gene-wise dispersion, using the prior estimates to "squeeze" the dispersion towards the common dispersion.
+dge.data.TC <- estimateGLMTagwiseDisp(dge.data.TC,design.TC)
+
+#We can examine this with a plot
+plotBCV(dge.data.TC)
+```
+
+```{r}
+#First the overall dispersion
+dge.data.TC.interaction <- estimateGLMCommonDisp(dge.data.TC,design.TC.interaction,verbose = TRUE)
+
+#Then a trended dispersion based on count level
+dge.data.TC.interaction <- estimateGLMTrendedDisp(dge.data.TC.interaction,design.TC.interaction)
+
+#And lastly we calculate the gene-wise dispersion, using the prior estimates to "squeeze" the dispersion towards the common dispersion.
+dge.data.TC.interaction <- estimateGLMTagwiseDisp(dge.data.TC.interaction,design.TC.interaction)
+
+#We can examine this with a plot
+plotBCV(dge.data.TC.interaction)
+```
+
+```{r}
+#this is the full model with all coefficients
+#dge.data is the normalized count data
+fit.TC <- glmFit(dge.data.TC, design.TC)
+
+#and for the interaction:
+fit.TC.interaction <- glmFit(dge.data.TC.interaction, design.TC.interaction)
+
+#this model looks at genes differentially expressed between two treatments
+trt.lrt.TC <- glmLRT(fit.TC,coef = "trtT")
+
+#comparing sp
+sp.lrt.TC.TC <- glmLRT(fit.TC,coef = "spTC")
+sp.lrt.TC.ST <- glmLRT(fit.TC, coef = "spST")
+
+#interaction
+lrt.interaction.TC <- glmLRT(fit.TC.interaction, coef = "spST:trtT")
+lrt.interaction.TC2 <- glmLRT(fit.TC.interaction, coef = "spTC:trtT")
+```
+
+```{r}
+topTags(trt.lrt.TC)
+topTags(sp.lrt.TC.TC)
+topTags(sp.lrt.TC.ST)
+topTags(lrt.interaction.TC)
+topTags(lrt.interaction.TC2)
+```
+
+```{r}
+summary(decideTestsDGE(trt.lrt.TC, p.value = 0.01))
+summary(decideTestsDGE(sp.lrt.TC.ST, p.value=0.01))
+summary(decideTestsDGE(sp.lrt.TC.TC, p.value=0.01))
+summary(decideTestsDGE(lrt.interaction.TC, p.value=0.01))
+summary(decideTestsDGE(lrt.interaction.TC2, p.value=0.01))
 ```
 
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
