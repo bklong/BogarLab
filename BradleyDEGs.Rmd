@@ -281,6 +281,13 @@ library(pheatmap)
 pheatmap(PM.counts.normal.log, scale = "row")
 ```
 
+make new dataframe to make heatmap that has treatments included in sample labels:
+
+```{r}
+PM.counts.normal.log.named <- PM.counts.normal.log
+colnames(PM.counts.normal.log.named) <- c()
+```
+
 ```{r}
 # Subset for top genes
 top_genes_trt <- rownames(topTags(trt.lrt.PM, n = 50)$table)
