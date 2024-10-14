@@ -285,7 +285,13 @@ make new dataframe to make heatmap that has treatments included in sample labels
 
 ```{r}
 PM.counts.normal.log.named <- PM.counts.normal.log
-colnames(PM.counts.normal.log.named) <- c()
+colnames(PM.counts.normal.log.named) <- c("NM_C_001", "NM_C_005", "NM_T_009", "NM_C_016", "S+T_C_019", "NM_T_023", "TC_T_026", "S+T_T_027", "S+T_C_030", "NM_C_043", "TC_C_045", "NM_C_049", "NM_T_050", "S+T_T_052", "NM_C_057", "S+T_C_062", "NM_C_080", "NM_T_082", "NM_T_085", "S+T_T_087")
+
+PM.counts.normal.log.named
+```
+
+```{r}
+pheatmap(PM.counts.normal.log.named, scale = "row")
 ```
 
 ```{r}
