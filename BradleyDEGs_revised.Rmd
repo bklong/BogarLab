@@ -9,4 +9,49 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Assign data to variables:
+
+```{r}
+PM.counts <- read.table("Psme_RNASeq_July2024_Psme.1_0_counts.txt", header = TRUE) 
+PM.counts
+
+TC.counts <- read.table("Psme_RNASeq_July2024_Trucit1_1_counts.txt", header = TRUE) 
+TC.counts
+```
+Filter counts by retaining only the reads that were over 10 count in at least three samples:
+
+```{r}
+TC.counts <- TC.counts[rowSums(TC.counts[,-1] > 10) >= 3,]
+TC.counts
+
+PM.counts <- PM.counts[rowSums(PM.counts[,-1] > 10) >= 3,]
+PM.counts
+```
+
+Remove Transcript ID column (convert dataframe to tibble):
+
+```{r}
+library(tibble)
+
+TC.counts.noid <- as_tibble(TC.counts)
+TC_counts_noid
+
+PM.counts.noid <- as_tibble(PM.counts)
+PM.counts.noid
+```
+
+Log transform the counts data:
+
+```{r}
+transformed.TC.counts <- log2(TC.counts.noid + 1) 
+transformed.PM.counts <- log2(PM.counts.noid + 1)
+```
+
+
+
+
+
+
+
+
 
