@@ -65,6 +65,70 @@ sample.description <- sample.description %>%
 sample.description
 ```
 
+DGE Analysis:
+
+```{r}
+library(edgeR)
+
+counts.matrix.TC <- TC.counts %>% as.matrix()
+counts.matrix.PM <- PM.counts %>% as.matrix()
+
+#remove unassigned row
+counts.matrix.TC <- counts.matrix.TC[, -21]
+counts.matrix.PM <- counts.matrix.PM[, -21]
+
+counts.matrix.TC
+counts.matrix.PM
+```
+
+```{r}
+dge.data.TC <- DGEList(counts=counts.matrix.TC,
+                       group=sample.description$group)
+dim(dge.data.TC)
+dge.data.TC <- calcNormFactors(dge.data.TC, method = "TMM")
+dge.data.TC$samples #look at the normalization factors
+
+dge.data.PM <- DGEList(counts=counts.matrix.PM, 
+                    group=sample.description$group)
+dim(dge.data.PM) 
+dge.data.PM <- calcNormFactors(dge.data.PM, method = "TMM")
+dge.data.PM$samples # look at the normalization factors
+```
+
+MDS plot:
+
+```{r}
+mdsvals <- plotMDS(dge.data.TC, plot = FALSE) # get the MDS values for plotting
+
+tibble(x=mdsvals$x, y=mdsvals$y, sample=rownames(dge.data.TC$samples)) %>%
+  inner_join(sample.description) %>%
+  ggplot(aes(x=x, y=y, color=trt, shape=sp)) +
+  geom_point(size=3) 
+```
+```{r}
+#sample.description is the original descriptive dataset (describes our samples but doesn't have counts data)
+
+design.TC <- model.matrix(~sp+trt,data=sample.description)
+rownames(design.TC) <- sample.description$sample
+design.TC
+
+design.PM <- model.matrix(~sp+trt,data = sample.description)
+rownames(design.PM) <- sample.description$sample
+design.PM
+```
+```{r}
+#First the overall dispersion
+dge.data.TC <- estimateGLMCommonDisp(dge.data.TC, design.TC, verbose = TRUE)
+dge.data.PM <- estimateGLMCommonDisp(dge.data.PM,design.PM,verbose = TRUE)
+
+#Then a trended dispersion based on count level
+dge.data.TC <- estimateGLMCommonDisp(dge.data.TC,design.TC)
+dge.data.PM <- estimateGLMTrendedDisp(dge.data.PM,design.PM)
+
+#And lastly we calculate the gene-wise dispersion, using the prior estimates to "squeeze" the dispersion towards the common dispersion.
+dge.data.TC <- estimateGLMTagwiseDisp(dge.data.TC,design.TC)
+dge.data.PM <- estimateGLMTagwiseDisp(dge.data.PM,design.PM)
+```
 
 
 
