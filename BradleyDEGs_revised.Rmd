@@ -129,7 +129,29 @@ dge.data.PM <- estimateGLMTrendedDisp(dge.data.PM,design.PM)
 dge.data.TC <- estimateGLMTagwiseDisp(dge.data.TC,design.TC)
 dge.data.PM <- estimateGLMTagwiseDisp(dge.data.PM,design.PM)
 ```
+```{r}
+#this is the full model with all coefficients
+#dge.data is the normalized count data
+fit.TC <- glmFit(dge.data.TC, design.TC)
+fit.PM <- glmFit(dge.data.PM, design.PM)
 
+#this model looks at genes differentially expressed between two treatments
+trt.lrt.TC <- glmLRT(fit.TC, coef = "trtT")
+trt.lrt.PM <- glmLRT(fit.PM,coef = "trtT")
+sp.lrt.PM <- glmLRT(fit.PM, coef = "spM")
+```
+
+top 10 DEGs:
+
+```{r}
+top10.trt.TC <- topTags(trt.lrt.TC)
+top10.trt.PM <- topTags(trt.lrt.PM)
+top10.sp.PM <- topTags(sp.lrt.PM) 
+
+top10.trt.TC
+top10.trt.PM
+top10.sp.PM
+```
 
 
 
