@@ -47,6 +47,23 @@ transformed.TC.counts <- log2(TC.counts.noid + 1)
 transformed.PM.counts <- log2(PM.counts.noid + 1)
 ```
 
+Make tibble with descriptions from counts data table: (this time treating TC or ST as both just "M" for simpler statistical analysis)
+
+```{r}
+sample.description <- tibble(sample=colnames(TC.counts.noid))
+sample.description <- sample.description %>%
+  mutate(
+    sp = c("NM", "NM", "NM", "NM", "M", "NM", "M", "M", "M", "NM", "M", "NM", "NM", "M", "NM", "M", "NM", "NM", "NM", "M", "NA"),  
+    trt = c("C", "C", "T", "C", "C", "T", "T", "T", "C", "C", "C", "C", "T", "T", "C", "C", "C", "T", "T", "T", "NA"),  
+    group = paste(sp, trt, sep = "_")
+  )
+sample.description <- sample.description %>%
+  slice(1:(n() - 1))
+sample.description <- sample.description %>%
+  mutate(sp=factor(sp, levels = c("NM","M")), 
+         trt=factor(trt,levels = c("C","T"))) # setting the levels in this way makes "C and NM" the reference
+sample.description
+```
 
 
 
