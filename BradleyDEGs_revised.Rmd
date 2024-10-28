@@ -115,30 +115,39 @@ design.TC
 design.PM <- model.matrix(~sp+trt,data = sample.description)
 rownames(design.PM) <- sample.description$sample
 design.PM
+
+design.PM.interaction <- model.matrix(~sp*trt,data = sample.description)
+rownames(design.PM.interaction) <- sample.description$sample
+design.PM.interaction
 ```
 ```{r}
 #First the overall dispersion
 dge.data.TC <- estimateGLMCommonDisp(dge.data.TC, design.TC, verbose = TRUE)
 dge.data.PM <- estimateGLMCommonDisp(dge.data.PM,design.PM,verbose = TRUE)
+dge.data.PM.interaction <- estimateGLMCommonDisp(dge.data.PM,design.PM.interaction,verbose = TRUE)
 
 #Then a trended dispersion based on count level
 dge.data.TC <- estimateGLMCommonDisp(dge.data.TC,design.TC)
 dge.data.PM <- estimateGLMTrendedDisp(dge.data.PM,design.PM)
+dge.data.PM.interaction <- estimateGLMTrendedDisp(dge.data.PM.interaction,design.PM.interaction)
 
 #And lastly we calculate the gene-wise dispersion, using the prior estimates to "squeeze" the dispersion towards the common dispersion.
 dge.data.TC <- estimateGLMTagwiseDisp(dge.data.TC,design.TC)
 dge.data.PM <- estimateGLMTagwiseDisp(dge.data.PM,design.PM)
+dge.data.PM.interaction <- estimateGLMTagwiseDisp(dge.data.PM.interaction,design.PM.interaction)
 ```
 ```{r}
 #this is the full model with all coefficients
 #dge.data is the normalized count data
 fit.TC <- glmFit(dge.data.TC, design.TC)
 fit.PM <- glmFit(dge.data.PM, design.PM)
+fit.interaction <- glmFit(dge.data.PM.interaction, design.PM.interaction)
 
 #this model looks at genes differentially expressed between two treatments
 trt.lrt.TC <- glmLRT(fit.TC, coef = "trtT")
 trt.lrt.PM <- glmLRT(fit.PM,coef = "trtT")
 sp.lrt.PM <- glmLRT(fit.PM, coef = "spM")
+interaction.lrt.PM <- glmLRT(fit.interaction,coef = "spM:trtT")
 ```
 
 top 10 DEGs:
@@ -147,12 +156,22 @@ top 10 DEGs:
 top10.trt.TC <- topTags(trt.lrt.TC)
 top10.trt.PM <- topTags(trt.lrt.PM)
 top10.sp.PM <- topTags(sp.lrt.PM) 
+top10.interaction.PM <- topTags(interaction.lrt.PM)
 
 top10.trt.TC
 top10.trt.PM
 top10.sp.PM
+top10.interaction.PM
 ```
+summary:
 
+```{r}
+summary(decideTestsDGE(trt.lrt.TC,p.value=0.01)) #This uses the FDR.  0.05 would be OK also.
+summary(decideTestsDGE(trt.lrt.PM,p.value=0.01)) 
+summary(decideTestsDGE(sp.lrt.PM,p.value=0.01))
+summary(decideTestsDGE(interaction.lrt.PM,p.value=0.05)) 
+```
+To summarize above analysis: No significant DEGs found between treatments for the fungal counts (at both 0.01 and 0.05 FDR). Significant DEGs were found (FDR 0.01) between treatments and species for tree counts. The interaction analysis shows no significant DEGs at FDR 0.01 but that increases to 29 significant DEGs at FDR 0.05. These 29 interaction genes are of high interest to our study. The next step is to try and look at the function of these, as well as create visualizations of the data.
 
 
 
