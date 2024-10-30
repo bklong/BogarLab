@@ -223,6 +223,14 @@ top50.PM.sp.named <- PM.counts.normal.log.named[top50.PM.sp, ]
 
 pheatmap(top50.PM.sp.named, scale = "row")
 ```
+```{r}
+top15.PM.sp <- rownames(topTags(sp.lrt.PM, n = 15)$table)
+top15.PM.sp.named <- PM.counts.normal.log.named[top15.PM.sp, ]
+
+pheatmap(top15.PM.sp.named, scale = "row")
+```
+
+
 ```{r, eval = FALSE}
 #need to fix above code before this will work
 top50.TC.trt <- rownames(topTags(trt.lrt.TC, n = 50)$table)
@@ -236,6 +244,12 @@ top50.PM.interaction <- rownames(topTags(interaction.lrt.PM, n = 50)$table)
 top50.PM.interaction.named <- PM.counts.normal.log.named[top50.PM.interaction, ]
 
 pheatmap(top50.PM.interaction.named, scale = "row")
+```
+```{r}
+top10.PM.interaction <- rownames(topTags(interaction.lrt.PM, n = 15)$table)
+top10.PM.interaction.named <- PM.counts.normal.log.named[top10.PM.interaction, ]
+
+pheatmap(top10.PM.interaction.named, scale = "row")
 ```
 
 
