@@ -34,13 +34,13 @@ Remove Transcript ID column (convert dataframe to tibble):
 library(tibble)
 
 TC.counts.noid <- as_tibble(TC.counts)
-TC_counts_noid
+TC.counts.noid
 
 PM.counts.noid <- as_tibble(PM.counts)
 PM.counts.noid
 ```
 
-Log transform the counts data:
+Log transform the counts data: (I am not sure where this is used or if it's needed.)
 
 ```{r}
 transformed.TC.counts <- log2(TC.counts.noid + 1) 
@@ -50,6 +50,7 @@ transformed.PM.counts <- log2(PM.counts.noid + 1)
 Make tibble with descriptions from counts data table: (this time treating TC or ST as both just "M" for simpler statistical analysis)
 
 ```{r}
+library(tidyverse)
 sample.description <- tibble(sample=colnames(TC.counts.noid))
 sample.description <- sample.description %>%
   mutate(
@@ -172,6 +173,36 @@ summary(decideTestsDGE(sp.lrt.PM,p.value=0.01))
 summary(decideTestsDGE(interaction.lrt.PM,p.value=0.05)) 
 ```
 To summarize above analysis: No significant DEGs found between treatments for the fungal counts (at both 0.01 and 0.05 FDR). Significant DEGs were found (FDR 0.01) between treatments and species for tree counts. The interaction analysis shows no significant DEGs at FDR 0.01 but that increases to 29 significant DEGs at FDR 0.05. These 29 interaction genes are of high interest to our study. The next step is to try and look at the function of these, as well as create visualizations of the data.
+
+Let's make a heat map...
+
+Get normalized and transformed counts:
+```{r}
+PM.counts.normal.log <- cpm(dge.data.PM,log = TRUE)
+TC.counts.normal.log <- cpm(dge.data.TC,log = TRUE)
+```
+
+Make basic heatmap:
+```{r}
+library(pheatmap)
+pheatmap(PM.counts.normal.log, scale = "row")
+pheatmap(TC.counts.normal.log, scale = "row")
+```
+
+make new dataframe to make heatmap that has treatments included in sample labels:
+
+```{r}
+PM.counts.normal.log.named <- PM.counts.normal.log
+colnames(PM.counts.normal.log.named) <- c("NM_C_001", "NM_C_005", "NM_T_009", "NM_C_016", "M_C_019", "NM_T_023", "M_T_026", "M_T_027", "M_C_030", "NM_C_043", "M_C_045", "NM_C_049", "NM_T_050", "M_T_052", "NM_C_057", "M_C_062", "NM_C_080", "NM_T_082", "NM_T_085", "M_T_087")
+
+PM.counts.normal.log.named
+```
+```{r}
+TC.counts.normal.log.named <- TC.counts.normal.log
+colnames(TC.counts.normal.log.named) <- c("C_019", "T_026", "T_027", "C_030", "C_045", "T_052","C_062", "T_087")
+
+TC.counts.normal.log.named
+```
 
 
 
