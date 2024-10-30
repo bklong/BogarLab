@@ -231,6 +231,12 @@ top50.TC.trt.named <- TC.counts.normal.log.named[top50.TC.trt, ]
 pheatmap(top50.TC.trt.named, scale = "row")
 ```
 
+```{r}
+top50.PM.interaction <- rownames(topTags(interaction.lrt.PM, n = 50)$table)
+top50.PM.interaction.named <- PM.counts.normal.log.named[top50.PM.interaction, ]
+
+pheatmap(top50.PM.interaction.named, scale = "row")
+```
 
 
 
