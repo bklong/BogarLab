@@ -198,16 +198,15 @@ colnames(PM.counts.normal.log.named) <- c("NM_C_001", "NM_C_005", "NM_T_009", "N
 PM.counts.normal.log.named
 ```
 ```{r}
-TC.counts.normal.log.named <- TC.counts.normal.log
+TC.counts.normal.log.named <- TC.counts.normal.log[, c("DFD_019", "DFD_026", "DFD_027", "DFD_030", "DFD_045", "DFD_052", "DFD_062", "DFD_087")]
+
 colnames(TC.counts.normal.log.named) <- c("C_019", "T_026", "T_027", "C_030", "C_045", "T_052","C_062", "T_087")
 
 TC.counts.normal.log.named 
-
-#I need to come back to fix this...might need to redo entire TC analysis as well by removing samples that did not have TC in it
 ```
 ```{r}
 pheatmap(PM.counts.normal.log.named, scale = "row")
-#pheatmap(TC.counts.normal.log.named, scale = "row")
+pheatmap(TC.counts.normal.log.named, scale = "row")
 ```
 subset top genes for heatmap:
 
@@ -231,8 +230,7 @@ pheatmap(top15.PM.sp.named, scale = "row")
 ```
 
 
-```{r, eval = FALSE}
-#need to fix above code before this will work
+```{r}
 top50.TC.trt <- rownames(topTags(trt.lrt.TC, n = 50)$table)
 top50.TC.trt.named <- TC.counts.normal.log.named[top50.TC.trt, ]
 
@@ -246,7 +244,7 @@ top50.PM.interaction.named <- PM.counts.normal.log.named[top50.PM.interaction, ]
 pheatmap(top50.PM.interaction.named, scale = "row")
 ```
 ```{r}
-top10.PM.interaction <- rownames(topTags(interaction.lrt.PM, n = 15)$table)
+top10.PM.interaction <- rownames(topTags(interaction.lrt.PM, n = 10)$table)
 top10.PM.interaction.named <- PM.counts.normal.log.named[top10.PM.interaction, ]
 
 pheatmap(top10.PM.interaction.named, scale = "row")
