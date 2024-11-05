@@ -249,6 +249,15 @@ top10.PM.interaction.named <- PM.counts.normal.log.named[top10.PM.interaction, ]
 
 pheatmap(top10.PM.interaction.named, scale = "row")
 ```
+let's subset some genes to start looking at their function:
+
+```{r}
+#Extract genes with a FDR < 0.05
+PM.interaction.DEGs <- topTags(interaction.lrt.PM,n = Inf,p.value = 0.05)$table
+
+#save to a file
+write.csv(PM.interaction.DEGs,"PM.interaction.DEGs.csv")
+```
 
 
 
