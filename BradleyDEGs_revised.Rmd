@@ -259,6 +259,6 @@ PM.interaction.DEGs <- topTags(interaction.lrt.PM,n = Inf,p.value = 0.05)$table
 write.csv(PM.interaction.DEGs,"PM.interaction.DEGs.csv")
 ```
 
-
+I will now make a new doc to use this dataframe for gene function stuff
 
 
