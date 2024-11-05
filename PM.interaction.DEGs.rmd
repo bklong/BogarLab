@@ -1,0 +1,18 @@
+---
+title: "PM interaction DEGs enrichment"
+author: "Britt"
+date: "2024-11-05"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+I will use this doc to do enrichment analysis/function of the 29 interaction DEGs I found in PM.
+
+```{r}
+DEGs <- read.csv("PM.interaction.DEGs.csv") 
+DEGs
+```
+
