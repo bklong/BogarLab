@@ -80,6 +80,22 @@ write.csv(DEGs, "DEGs_with_sequences.csv", row.names = FALSE)
 cat("Sequences have been extracted and saved to 'DEGs_with_sequences.csv'.")
 
 ```
+That seems to have worked, although I need to double check accuracy later.
+
+Let's remove some columns from the dataframe and then resave the data as a csv.
+
+```{r}
+library(dplyr)
+
+# Remove columns by position
+DEGs <- DEGs %>% select(-c(3, 4, 5))
+DEGs
+```
+
+
+```{r}
+write.csv(DEGs, "interaction.DEGs.csv", row.names = FALSE)
+```
 
 
 
