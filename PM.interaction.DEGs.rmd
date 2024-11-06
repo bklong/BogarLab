@@ -16,3 +16,33 @@ DEGs <- read.csv("PM.interaction.DEGs.csv")
 DEGs
 ```
 
+GTF file maybe?
+
+```{r}
+library(data.table)
+library(R.utils)
+
+# Read the GTF file as a data.table
+gtf <- fread("Psme.1_0 (1).gtf.gz")
+
+head(gtf)
+```
+
+trying the CDS file instead...
+
+```{r}
+library(Biostrings)
+
+# Read the CDS FASTA file
+cds_sequences <- readDNAStringSet("Psme.1_0.cds.fa.gz")
+
+# Print the sequences to inspect
+cds_sequences
+```
+
+
+
+
+
+
+
