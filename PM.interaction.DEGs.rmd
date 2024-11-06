@@ -49,6 +49,37 @@ print(DEG1)
 DEG1 <- as.character(DEG1)
 print(DEG1)
 ```
+let's attempt a for loop to automate this:
+
+```{r}
+
+extracted_sequences <- character(nrow(DEGs))
+
+# Loop over each row in the DEGs data frame to extract sequences
+for (i in 1:nrow(DEGs)) {
+  gene_name <- DEGs[i, 1]  # Extract the gene name from the first column
+  
+  # Check if the gene name exists in the cds_sequences
+  if (gene_name %in% names(cds_sequences)) {
+    DEG_sequence <- cds_sequences[gene_name]  # Extract sequence
+    DEG_sequence <- as.character(DEG_sequence)  # Convert to character string
+  } else {
+    DEG_sequence <- NA  # Assign NA if gene is not found
+  }
+  
+  # Store the result in the vector
+  extracted_sequences[i] <- DEG_sequence
+}
+
+# Add the extracted sequences to the DEGs data frame
+DEGs$sequence <- extracted_sequences
+
+# Save the updated DEGs data frame with sequences to a CSV file
+write.csv(DEGs, "DEGs_with_sequences.csv", row.names = FALSE)
+
+cat("Sequences have been extracted and saved to 'DEGs_with_sequences.csv'.")
+
+```
 
 
 
