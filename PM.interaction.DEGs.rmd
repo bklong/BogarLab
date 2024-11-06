@@ -91,13 +91,13 @@ library(dplyr)
 DEGs <- DEGs %>% select(-c(3, 4, 5))
 DEGs
 ```
-
+now I have a csv with the 29 DEGs, their sequence, their FDRs and log fold change:
 
 ```{r}
 write.csv(DEGs, "interaction.DEGs.csv", row.names = FALSE)
 ```
 
-
+time to blast...
 
 
 
