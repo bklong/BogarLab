@@ -39,6 +39,16 @@ cds_sequences <- readDNAStringSet("Psme.1_0.cds.fa.gz")
 # Print the sequences to inspect
 cds_sequences
 ```
+let's try to extract sequence from specific genes:
+
+```{r}
+DEG1 <- cds_sequences["PSME_21469"]
+print(DEG1)
+```
+```{r}
+DEG1 <- as.character(DEG1)
+print(DEG1)
+```
 
 
 
