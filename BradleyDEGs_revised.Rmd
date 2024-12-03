@@ -249,6 +249,14 @@ top10.PM.interaction.named <- PM.counts.normal.log.named[top10.PM.interaction, ]
 
 pheatmap(top10.PM.interaction.named, scale = "row")
 ```
+```{r}
+top29.PM.interaction <- rownames(topTags(interaction.lrt.PM, n = 29)$table)
+top29.PM.interaction.named <- PM.counts.normal.log.named[top29.PM.interaction, ]
+
+pheatmap(top29.PM.interaction.named, scale = "row")
+```
+
+
 let's subset some genes to start looking at their function:
 
 ```{r}
