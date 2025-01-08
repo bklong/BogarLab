@@ -33,3 +33,21 @@ cp TO* ~/TO16S/TO16S.seqs
 ```
 
 I know have ALL of the TO sequences in the directory TO16S.seqs, but I need only the 16S sequences and not the ITS sequences. I'll have to use the barcode names in the fasta files to filter the sequences and keep only the 16S.
+
+Let's start with setting up a directory I can add the filtered (16S only) sequences to:
+
+```{bash, eval = FALSE}
+cd
+
+cd /TO16S/TO16S.seqs
+
+mkdir TO16S_filtered 
+```
+
+I used google sheets to save Anna's primer names for the 16S samples only and then used ="TO_"&A:A&"_"&B:B to combine the F and R primers into one cohesive sample name/file name. I then copied all of the names I made and pasted them into a text file. 
+
+```{bash, eval = FALSE}
+
+```
+
+
