@@ -9,3 +9,10 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{bash, eval = FALSE}
+/data/Metabarcoding_DeepOaks_TejonOaks/p56ofydo/Unaligned/Project_LBAG_TODO_LP_MP1/
+
+cp TO* [your new TO directory]
+
+```
+
