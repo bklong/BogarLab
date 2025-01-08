@@ -9,6 +9,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Let's copy TO sequence into a separate directory within my username that I can work on without ruining the raw data.
+
 okaygirl so this is what you do:
 
 ```{bash, eval = FALSE}
@@ -30,3 +32,4 @@ cp TO* ~/TO16S/TO16S.seqs
 
 ```
 
+I know have ALL of the TO sequences in the directory TO16S.seqs, but I need only the 16S sequences and not the ITS sequences. I'll have to use the barcode names in the fasta files to filter the sequences and keep only the 16S.
