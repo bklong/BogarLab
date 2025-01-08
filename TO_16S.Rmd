@@ -9,10 +9,24 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{bash, eval = FALSE}
-/data/Metabarcoding_DeepOaks_TejonOaks/p56ofydo/Unaligned/Project_LBAG_TODO_LP_MP1/
+okaygirl so this is what you do:
 
-cp TO* [your new TO directory]
+```{bash, eval = FALSE}
+ssh -p 22345 -l bklong bogarprecision.plb.ucdavis.edu
+
+mkdir TO16S
+
+cd TO16S
+
+mkdir TO16S.seqs
+
+cd
+
+cd /data/Metabarcoding_DeepOaks_TejonOaks/p56ofydo/Unaligned/Project_LBAG_TODO_LP_MP1/
+
+ls -d ~/TO16S/TO16S.seqs #checks to see if directory is found before trying to copy
+
+cp TO* ~/TO16S/TO16S.seqs
 
 ```
 
