@@ -20,7 +20,7 @@ library(fastqcr)
 
 ```{r, eval = FALSE}
 #run fastqc
-fastqc(fq.dir = "16S/", qc.dir = "16SQC",threads = 4)
+fastqc(fq.dir = "16S/TO16S_filtered", qc.dir = "16SQC",threads = 4)
 #summarize
 qc <- qc_aggregate("16SQC")
 #view summary
@@ -36,6 +36,99 @@ Oops, looks like this doesn't work on my windows computer. That's okay, all fast
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 ```
+
+```{r}
+BiocManager::install("dada2")
+library("dada2")
+```
+```{r}
+path <- "16S/TO16S_filtered" # CHANGE ME to the directory containing the fastq files after unzipping.
+list.files(path)
+```
+
+```{r}
+fnFs <- sort(list.files(path, pattern="_R1.fastq.gz", full.names = TRUE))
+fnRs <- sort(list.files(path, pattern="_R2.fastq.gz", full.names = TRUE))
+# Extract sample names, assuming filenames have format: SAMPLENAME_XXX.fastq
+sample.names <- sapply(strsplit(basename(fnFs), "_"), `[`, 1)
+```
+
+```{r}
+plotQualityProfile(fnFs[1:2])
+```
+```{r}
+plotQualityProfile(fnRs[1:2])
+```
+
+```{r}
+# Place filtered files in filtered/ subdirectory
+filtFs <- file.path(path, "filtered", paste0(sample.names, "_F_filt.fastq.gz"))
+filtRs <- file.path(path, "filtered", paste0(sample.names, "_R_filt.fastq.gz"))
+names(filtFs) <- sample.names
+names(filtRs) <- sample.names
+```
+
+Before you run this line, change the values to where you say is a good cutoff for your data:
+
+```{r}
+out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=c(250,200),maxN=0, maxEE=c(2,2), truncQ=2, rm.phix=TRUE,compress=TRUE, multithread=TRUE, trimLeft = c(19, 20))
+head(out)
+```
+
+do not run this next chunk. It's another FASTQC that we don't necessarily need. Skip.
+
+```{r, eval = FALSE}
+fastqc(fq.dir = "DATA/filtered/", qc.dir = "FASTQC_2",threads = 4) 
+qc2 <- qc_aggregate("FASTQC_2") 
+qc2
+
+plotQualityProfile(filtFs[1:2])
+plotQualityProfile(filtRs[1:2])
+```
+
+```{r}
+errF <- learnErrors(filtFs, multithread=TRUE) # creates an object that contains the errors for the forward sequences
+errR <- learnErrors(filtRs, multithread=TRUE)# creates an object that contains the errors for the reverse sequences
+```
+
+```{r}
+plotErrors(errF, nominalQ=TRUE) # this plots the forward error rates
+```
+
+```{r}
+plotErrors(errR, nominalQ=TRUE) # this plots the reverse error rates
+```
+
+```{r}
+dadaFs <- dada(filtFs, err=errF, multithread=TRUE)
+```
+
+```{r}
+dadaRs <- dada(filtRs, err=errR, multithread=TRUE)
+```
+
+```{r}
+mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE)
+head(mergers[[1]])
+```
+
+```{r}
+seqtab <- makeSequenceTable(mergers) # make sequence table
+dim(seqtab) # tell me the dimensions of the sequence table.
+```
+
+```{r}
+table(nchar(getSequences(seqtab)))
+```
+
+```{r}
+seqtab2 <- seqtab[,nchar(colnames(seqtab)) %in% 250:256] # remove sequences shorter than 250 (as written) and longer than 256 (as written)
+sum(seqtab2)/sum(seqtab)
+seqtab <- seqtab2 # rename the object you made above to seqtab so you can continue this tutorial without complications. For your own work, I would suggest leaving it named seqtab2 and using "seqtab2" instead of "seqtab" for all steps below. This will help you remember what you were did.
+```
+
+DAY 2
+
 
 
 
