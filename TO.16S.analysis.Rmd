@@ -1,0 +1,14 @@
+---
+title: "TO.16S.analysis"
+author: "Britt"
+date: "2025-01-09"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This is the document I will use to analyze 16S TO data in Christy's microbial metagenomics class.
+
+
