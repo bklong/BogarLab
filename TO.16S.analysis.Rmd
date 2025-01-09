@@ -11,4 +11,31 @@ knitr::opts_chunk$set(echo = TRUE)
 
 This is the document I will use to analyze 16S TO data in Christy's microbial metagenomics class.
 
+```{r}
+install.packages("fastqcr")
+```
+```{r}
+library(fastqcr)
+```
+
+```{r, eval = FALSE}
+#run fastqc
+fastqc(fq.dir = "16S/", qc.dir = "16SQC",threads = 4)
+#summarize
+qc <- qc_aggregate("16SQC")
+#view summary
+qc
+```
+fq.dir = location you have your fastq files
+
+qc.dir = location you want the output
+
+Oops, looks like this doesn't work on my windows computer. That's okay, all fastqc does is visualize the quality of our data. Looks like I will skip this step and go straight into quality control! Chirsty says that generally we don't even bother doing fastqc on 16S data.
+
+```{r}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+```
+
+
 

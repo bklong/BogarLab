@@ -41,12 +41,16 @@ install.packages("fastqcr")
 fastqc_install()
 library("fastqcr"); packageVersion("fastqcr")
 #run fastqc
-fastqc(fq.dir = "DATA/", qc.dir = "FASTQC",threads = 4)
+fastqc(fq.dir = "16S/", qc.dir = "16SQC",threads = 4)
 #summarize
-qc <- qc_aggregate("FASTQC")
+qc <- qc_aggregate("16SQC")
 #view summary
 qc
 ```
+
+fq.dir = location you have your fastq files
+
+qc.dir = location you want the output
 
 We now have a sense of what our data look like and where some (potential) quality issues lie. Now, we can address some of those issues. We will use dada2 to do so and for a large portion of the rest of our analysis. First we will install and load dada2.
 
