@@ -44,10 +44,67 @@ cd /TO16S/TO16S.seqs
 mkdir TO16S_filtered 
 ```
 
-I used google sheets to save Anna's primer names for the 16S samples only and then used ="TO_"&A:A&"_"&B:B to combine the F and R primers into one cohesive sample name/file name. I then copied all of the names I made and pasted them into a text file. 
+I used google sheets to save Anna's primer names for the 16S samples only and then used ="TO_"&A:A&"_"&B:B to combine the F and R primers into one cohesive sample name/file name. I then copied all of the names I made and pasted them into a text file. I manually added the text file to github and then pulled it here on R to add it to my directory so that I can work with it. TO16S.seq.names.txt
 
 ```{bash, eval = FALSE}
-
+while read barcode; do
+    mv "${barcode}"*.fastq.gz ./TO16S_filtered/
+done < TO16S.seq.names.txt
 ```
 
+After running the above code, I realized that the server doesn't have my text file (which is where it needs to be.) Let's move it to the Bogar server:
+
+```{bash, eval = FALSE}
+#this code goes in the personal computer terminal
+scp -P 22345 /c/Users/britt/Downloads/TO16S.names.txt bklong@bogarprecision.plb.ucdavis.edu:~/TO16S/TO16S.seqs
+```
+
+That worked just like a charm! The server now has my text file with 16S barcode names.
+
+Let's try the for loop again now that the server has access.
+
+```{bash, eval = FALSE}
+while read barcode; do
+    mv "${barcode}"*.fastq.gz ./TO16S_filtered/
+done < TO16S.names.txt
+```
+
+oop, some weird \r windows character error...let's try again (but now with modifying that part)
+
+```{bash, eval = FALSE}
+while read barcode; do
+    # Remove the carriage return (\r) from the barcode
+    barcode=$(echo "$barcode" | sed 's/\r//g')
+    # Move the file with the cleaned barcode
+    mv "${barcode}*" ./TO16S_filtered/
+done < TO16S.names.txt
+```
+more weird stuff kept happening but with LOTS of help from ChatGPT, the following code seemed to work:
+
+```{bash, eval = FALSE}
+while read barcode; do
+    # Remove any carriage return (\r) and trim leading/trailing whitespace from the barcode
+    barcode=$(echo "$barcode" | sed 's/\r//g' | awk '{$1=$1};1')
+
+    # Debug: Print the cleaned barcode to verify (optional)
+    echo "Barcode: '$barcode'"
+
+    # Check if the files exist before moving them
+    if ls "${barcode}"* 1> /dev/null 2>&1; then
+        # Move the files with the cleaned barcode
+        mv "${barcode}"* ./TO16S_filtered/
+    else
+        # Print a message if no files match the barcode
+        echo "No files found for barcode: $barcode"
+    fi
+done < TO16S.names.txt
+```
+
+So now I have a directory with only the 16S fasta files (/TO16S_filtered)
+I will now move them to my laptop.
+
+```{bash, eval = FALSE}
+#this code goes in the personal computer terminal
+scp -P 22345 -r bklong@bogarprecision.plb.ucdavis.edu:~/TO16S/TO16S.seqs/TO16S_filtered /c/Users/britt/Desktop/16S
+```
 
