@@ -108,3 +108,4 @@ I will now move them to my laptop.
 scp -P 22345 -r bklong@bogarprecision.plb.ucdavis.edu:~/TO16S/TO16S.seqs/TO16S_filtered /c/Users/britt/Desktop/16S
 ```
 
+It worked! I now have a folder on my desktop with exclusively 16S TO fastas.
