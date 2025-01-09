@@ -1,0 +1,379 @@
+---
+title: "2024ClassDada2"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE) #If you knit, this will make the chunks visible in the final file.
+knitr::opts_chunk$set(eval = FALSE) #This will prevent R from re-running chunks if you knit this document.
+```
+
+Let's do this!
+
+We are going to analyze the 16S data from your chosen dataset. We will use the package [dada2](https://www.nature.com/articles/nmeth.3869) authored by Benjamin Callahan. We will be working largely from the [workflow he developed](https://benjjneb.github.io/dada2/bigdata_paired.html). However, the commentary in his workflow often focuses on the more technical aspects of the work. We will focus on making sure we are comfortable with our data at each step (and in lecture on understanding the theory behind what we are doing). If you think you will do 16S data analysis in the future, I highly suggest going back through his tutorial. In this tutorial:
+
+-   Things that are [**bold and underlined**]{.underline} indicate that you need to make a change from the code in your script.
+
+-   Questions you should ask yourself before the next step are ***bold italics and bulleted***. These are the types of questions I ask myself as I am analyzing data to make sure that 1) my data are high quality and 2) I haven't made mistakes. You may not feel fully confident answering some of them until you have analyzed a few datasets. That's okay.
+
+-   Key terms are [underlined]{.underline}. These are the vocab words that may come in helpful.
+
+-   Links are shown in [blue](https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1).
+
+-   I highly (highly) recommend that you jot down notes about why you make the decisions you do. This allows your rmd file to serve as a pseudo lab notebook so you can return to it in the future. You can also knit this document (think print into a html file) so you can share it with your advisor or collaborators.
+
+# Day 1
+
+## Quality control and sequence processing
+
+The very first thing to do for any type of DNA based analysis is to make sure you are starting with high quality data.
+
+**Crummy Data In = Crummy Data Out**
+
+We will be using an R-based implementation of FastQC to look at the quality of your data and then we will use dada2 to remove low quality data. Papers for both of these are linked in the readings folder.
+
+First, we will use FastQC. This application is usually used via the command line but the R package fastqcr is an R based implementation. Here, we will run fastqc on the data then make and look at a summary of the output. We can also look at the output in its HTML format by opening the files outside of R.
+
+[**Change the path to your data (fastq.gz files) below and the path the directory in which you want to save your fastqc output files.**]{.underline}
+
+```{r FastQC}
+install.packages("fastqcr")
+fastqc_install()
+library("fastqcr"); packageVersion("fastqcr")
+#run fastqc
+fastqc(fq.dir = "DATA/", qc.dir = "FASTQC",threads = 4)
+#summarize
+qc <- qc_aggregate("FASTQC")
+#view summary
+qc
+```
+
+We now have a sense of what our data look like and where some (potential) quality issues lie. Now, we can address some of those issues. We will use dada2 to do so and for a large portion of the rest of our analysis. First we will install and load dada2.
+
+```{r load package, results="hide", fig.show='hide', warning=FALSE, message=FALSE}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("dada2")
+library("dada2")
+```
+
+Now we need to tell R where the files you will be working with are and where you want files to be saved. You learned about file architecture in your introductory class. Put those skills to work here.
+
+[**Change the path to the correct path to access your files. You may use the tab key to help.**]{.underline}
+
+```{r file locations, results="hide", fig.show='hide', warning=FALSE, message=FALSE}
+path <- "DATA" # CHANGE ME to the directory containing the fastq files after unzipping.
+list.files(path)
+
+```
+
+The file name usually indicates if it holds forward or reverse reads. If you downloaded your data using the SRA toolkit, forward reads likely have the format SAMPLENAME_pass_1.fastq.gz and reverse reads SAMPLENAME_pass_2.fastq.gz. Straight from the sequencing facility, they often have the format SAMPLENAME_R1_001.fastq.gz and SAMPLENAME_R2_001.fastq.gz.
+
+Now that it knows where the data are, we can start to manipulate the files into a format that works for data2. In this section we are:
+
+1.  Making an object that contains the names of our forward and reverse reads so that we don't have to list them individually every time (phew)!
+
+2.  Parsing the sample name out from the file names.
+
+3.  Making sure that we have equal numbers of reads in our forward and reverse files. If we don't then something is wrong.
+
+    -   ***Why would this be a problem?***
+
+The file name usually indicates if it holds forward or reverse reads. If you downloaded your data using the SRA toolkit, forward reads likely have the format SAMPLENAME_pass_1.fastq.gz and reverse reads SAMPLENAME_pass_2.fastq.gz. Straight from the sequencing facility, they often have the format SAMPLENAME_R1_001.fastq.gz and SAMPLENAME_R2_001.fastq.gz.
+
+[**Change the pattern below to match that of your forward and reverse reads.**]{.underline}
+
+```{r file manipulation, results="hide", fig.show='hide', warning=FALSE, message=FALSE}
+fnFs <- sort(list.files(path, pattern="_pass_1.fastq.gz", full.names = TRUE))
+fnRs <- sort(list.files(path, pattern="_pass_2.fastq.gz", full.names = TRUE))
+# Extract sample names, assuming filenames have format: SAMPLENAME_XXX.fastq
+sample.names <- sapply(strsplit(basename(fnFs), "_"), `[`, 1)
+```
+
+Now we are going to take a look at the quality profiles of the reads. The quality often drops off at the end of the read (although this is becoming less common as sequencing technology gets better).
+
+[**Examine the quality profiles for the forward and reverse reads and determine where the quality drops below what you view as acceptable.**]{.underline}
+
+```{r visualize forward read quality, results="hide", fig.show='hide', warning=FALSE, message=FALSE}
+plotQualityProfile(fnFs[1:2])
+```
+
+```{r visualize reverse read quality, results="hide", fig.show='hide', warning=FALSE, message=FALSE}
+plotQualityProfile(fnRs[1:2])
+```
+
+```{r filtered read files, results="hide", fig.show='hide', warning=FALSE, message=FALSE}
+# Place filtered files in filtered/ subdirectory
+filtFs <- file.path(path, "filtered", paste0(sample.names, "_F_filt.fastq.gz"))
+filtRs <- file.path(path, "filtered", paste0(sample.names, "_R_filt.fastq.gz"))
+names(filtFs) <- sample.names
+names(filtRs) <- sample.names
+```
+
+Based on our data from above, we will trim our reads to only keep the high quality sections. We will also filter out reads that are low quality across the full read.
+
+As written, we are:
+
+1.  Trimming the reads to 245 (forward) and 245 (reverse) base pairs (note that these are very high quality data. You may need to trim other data sets much more.
+
+2.  Removing reads that have any Ns (bases that have undetermined base calls)
+
+3.  Allowing 2 expected errors per sequence (Illumina has an expected error rate of \~0.1 - 0.01 errors per base sequenced)
+
+4.  Truncating a read at the first instance of a quality score less than or equal to 2.
+
+5.  Removing sequences associated with phiX. PhiX is a virus who's genome is very balanced with respect to nucleotide content (i.e. 25% A, G, T, C). It is added during the amplification process as an internal control. See more information [here](https://dornsife.usc.edu/uscgenomecore/faq/).
+
+6.  Trimming 17 basepairs from the beginning of the forward read and 21 bp from the beginning of the reverse reads because that is the length of the primer on each read. This is important because there are often mismatches between the primer and the 16S target, especially when primers are designed with some degeneracy. This introduces sequence variation in the output that isn't present in real life (i.e. these regions are prone to errors). Your primers may be a different length or may not have been trimmed off.
+
+[**Change the truncLen values to what you consider best for your data based on the quality profiles above. If you still have primers on your data, use trimLeft to remove the forward and reverse primers.**]{.underline}
+
+```{r trim and filter, results="hide", fig.show='hide', warning=FALSE, message=FALSE}
+out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=c(250,200),maxN=0, maxEE=c(2,2), truncQ=2, rm.phix=TRUE,compress=TRUE, multithread=TRUE, trimLeft = c(19, 20))
+head(out)
+```
+
+Now, lets look at the quality of our reads after the trimming step. Note that some of the errors identified from FastQC are inherent in 16S data so this will not solve all of the "problems" that it has identified.
+
+```{r FastQC2}
+fastqc(fq.dir = "DATA/filtered/", qc.dir = "FASTQC_2",threads = 4) 
+qc2 <- qc_aggregate("FASTQC_2") 
+qc2
+
+plotQualityProfile(filtFs[1:2])
+plotQualityProfile(filtRs[1:2])
+```
+
+-   The forward and reverse reads must overlap by at least 12 nucleotides so that we can combine them into one long read.
+
+    -   ***What is the target length of our sequences***
+
+        -   [Target Length]{.underline} = reverse - forward + 1 - length of the primers***.***
+
+    -   ***Using your truncLen values, do you expect your reads to overlap?***
+
+    -   ***If not, what values are you going to change to allow them to overlap? How does it affect your confidence in your data?***
+
+    -   ***Look at the output - do you think you lost a reasonable number of reads?***
+
+        -   Remember it is better to lose poor quality reads in the beginning than try to keep them. [Junk In = Junk Out]{.underline}.
+
+## Learn Error Rates
+
+The core of dada2 is learning what errors exist in the sequencing data and then using those errors to model the true sequences present in a dataset. The first step of this is to learn the errors. Each sequencing run has its own set of errors. If, in the future, you want to look at data from two different sequencing runs, be sure to run the dada2 pipeline separately between each run and then combine the sequence tables at the end.
+
+```{r learn error rates, results="hide", fig.show='hide', warning=FALSE, message=FALSE}
+errF <- learnErrors(filtFs, multithread=TRUE) # creates an object that contains the errors for the forward sequences
+errR <- learnErrors(filtRs, multithread=TRUE)# creates an object that contains the errors for the reverse sequences
+```
+
+Now, we want to make sure that nothing has gone wrong. To do so, we will visualize the [estimated error rates]{.underline}. In this plot, the black line shows the [estimated error rates]{.underline}, these are the error rates that dada2 predicts based on a subset of our data. The points show the [observed error rates]{.underline}, these are the actual error rates of the subset of the data. We want the black line to represent the dots as best as possible because this means that the model we will use to estimate error rates fits the data well. For comparison, the red line shows the estimated error rates if we used the quality score alone. The black line should fit the data better than the red line.
+
+```{r plot forward error rates, results="hide", fig.show='hide', warning=FALSE, message=FALSE}
+plotErrors(errF, nominalQ=TRUE) # this plots the forward error rates
+```
+
+-   ***Do you feel like your modeled error rates (black line) fit the data (points) better than if we use the quality scores alone (red line)?***
+
+```{r plot reverse error rates, results="hide", fig.show='hide', warning=FALSE, message=FALSE}
+plotErrors(errR, nominalQ=TRUE) # this plots the reverse error rates
+```
+
+-   ***Do you feel like your modeled error rates (black line) fit the data (points) better than if we use the quality scores alone (red line)?***
+
+## Apply Error Rates
+
+Now we can apply the estimated error rates to the trimmed, filtered (i.e. high quality) sequence data.
+
+```{r sample inference forward, results="hide", fig.show='hide', warning=FALSE, message=FALSE}
+dadaFs <- dada(filtFs, err=errF, multithread=TRUE)
+```
+
+```{r sample inference reverse, results="hide", fig.show='hide', warning=FALSE, message=FALSE}
+dadaRs <- dada(filtRs, err=errR, multithread=TRUE)
+```
+
+Now we combine the forward and reverse reads into contigs.
+
+```{r make contigs, results="hide", fig.show='hide', warning=FALSE, message=FALSE}
+mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE)
+head(mergers[[1]])
+```
+
+## Make Sequence Table
+
+Now you have your contigs and dada2 has been tracking how many times they are present in each sample. To give us access to that information, we will make a sequence table.
+
+```{r make sequence table, results="hide", fig.show='hide', warning=FALSE, message=FALSE}
+seqtab <- makeSequenceTable(mergers) # make sequence table
+dim(seqtab) # tell me the dimensions of the sequence table.
+```
+
+-   ***How many samples do you have? How many unique sequence variants do you have? Does this seem "right" to you?***
+
+Now we want to see how long each of the sequences are.
+
+-   ***How long should your sequences be?***
+
+-   ***Why might there be variability in the sequence length?***
+
+-   ***How much is "too much" variation from our target sequence length?***
+
+```{r look at sequence length, results="hide", fig.show='hide', warning=FALSE, message=FALSE}
+table(nchar(getSequences(seqtab)))
+```
+
+-   **Are you happy with the distribution of sequence lengths? Are there any that you want to get rid of?**
+
+[**Optional Step: Edit 250:256 below to indicate the range of sequence lengths that you would like to keep. Otherwise, delete the chunk or comment out the lines.**]{.underline}
+
+```{r remove highly variant sequences, results="hide", fig.show='hide', warning=FALSE, message=FALSE}
+seqtab2 <- seqtab[,nchar(colnames(seqtab)) %in% 250:256] # remove sequences shorter than 250 (as written) and longer than 256 (as written)
+sum(seqtab2)/sum(seqtab)
+seqtab <- seqtab2 # rename the object you made above to seqtab so you can continue this tutorial without complications. For your own work, I would suggest leaving it named seqtab2 and using "seqtab2" instead of "seqtab" for all steps below. This will help you remember what you were did.
+
+```
+
+# Day 2
+
+## Remove Chimeras
+
+Sometimes, during the sequencing process, the beginning of one biological sequence can be joined to the end of a different biological sequence. This is called a [chimera]{.underline}. They are very common in 16S sequence datasets (papers are linked Canvas). We do not want them in *our* dataset because the don't represent a real organism in our sample. There are multiple algorithms for identifying chimeras (e.g. [UCHIME](https://www.biorxiv.org/content/10.1101/074252v1.abstract), [Bellerophon](https://academic.oup.com/bioinformatics/article/20/14/2317/213951), [Decipher](https://journals.asm.org/doi/full/10.1128/AEM.06516-11), and [CATCh](https://journals.asm.org/doi/abs/10.1128/AEM.02896-14)). Dada2 considers a sequence to be a chimera if it can be constructed by taking the first half of one abundant sequence and combining it with the second half of another abundant sequence.
+
+```{r remove chimeras, results="hide", fig.show='hide', warning=FALSE, message=FALSE}
+seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
+```
+
+Now we will look at the number of samples and unique sequence variants in our chimera free sequence table.
+
+```{r check chimera free, results="hide", fig.show='hide', warning=FALSE, message=FALSE}
+dim(seqtab.nochim)
+```
+
+-   ***How does this compare to your previous sequence table?***
+
+-   ***Did it remove more, fewer, or about the same number of sequences as you expected?***
+
+Another way to look at this is to look at the total percentage of sequences removed. We can do that below
+
+```{r check chimera free percent, fig.show='hide', warning=FALSE, message=FALSE}
+sum(seqtab.nochim)/sum(seqtab)
+```
+
+-   ***What percentage of sequences were removed?***
+
+It isn't uncommon for many sequence variants to be removed as chimeras, but most of your reads should remain.
+
+-   ***Do you feel comfortable with this result?***
+
+To see where we've been, lets track our reads through the whole process. You will likely see a significant decrease in the number of sequences during the trim and filtering step but not anywhere else. This is your last chance to make sure your data look okay before you begin to actually analyze them.
+
+```{r sanity check, results="hide", fig.show='hide', warning=FALSE, message=FALSE}
+getN <- function(x) sum(getUniques(x))
+track <- cbind(out, sapply(dadaFs, getN), sapply(dadaRs, getN), sapply(mergers, getN), rowSums(seqtab.nochim))
+colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
+rownames(track) <- sample.names
+track
+```
+
+## Assign Taxonomy
+
+Now, we get to see what each of our sequences actually are. To do so, we will compare our sequences to sequences from known organisms in the Silva non-redundant database ([Quast et al., 2013](https://academic.oup.com/nar/article/41/D1/D590/1069277); [webpage](https://www.arb-silva.de)). You will need to change the path to the the Silva training set. There are also formatted training sets for the Genomes Taxonomy Database (GTDB) and GreenGenes databases
+
+[**Change the path to the silva training set below.**]{.underline}
+
+```{r assign taxonomy, results="hide", fig.show='hide', warning=FALSE, message=FALSE}
+taxa <- assignTaxonomy(seqtab.nochim, "~/Documents/silva.nr_v138_1/silva_nr99_v138.1_train_set.fa")
+taxa.print <- taxa # Removing sequence rownames for display only
+rownames(taxa.print) <- NULL
+head(taxa.print)
+```
+
+```{r load phyloseq, results="hide", fig.show='hide', warning=FALSE, message=FALSE}
+#if (!require("BiocManager", quietly = TRUE))
+    #install.packages("BiocManager")
+
+#BiocManager::install("Biostrings")
+library(Biostrings); packageVersion("Biostrings")
+library(ggplot2); packageVersion("ggplot2")
+library("phyloseq"); packageVersion("phyloseq")
+theme_set(theme_bw())
+
+#install.packages("remotes")
+#remotes::install_github("microbiome/microbiome")
+library("microbiome")
+```
+
+```{r restructure data, results="hide", fig.show='hide', warning=FALSE, message=FALSE}
+
+#sam_data<-read.csv("../16S/SeagrassMetadata.csv", header=TRUE, row.names=1)
+
+ps <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE), 
+               #sample_data(sam_data), 
+               tax_table(taxa))
+
+dna <- Biostrings::DNAStringSet(taxa_names(ps))
+names(dna) <- taxa_names(ps)
+ps <- merge_phyloseq(ps, dna)
+taxa_names(ps) <- paste0("ASV", seq(ntaxa(ps)))
+ps
+```
+
+## Removing Unwanted Data
+
+The 16S rRNA primers are designed to amplify bacterial 16S sequences. However, they will also amplify (and therefore we sequenced) chloroplast sequences and mitochondrial sequences. Chloroplasts and mitochondria are organelles, but they descend from Cyanobacteria (chloroplasts) and Proteobacteria (mitochondria). T However, because the primers are not specific to chloroplasts or mitochondria we must remove those sequences. Some primer sets are designed to amplify archaeal sequences others are not (but will amplify some but not all sequences... not a good thing). If your primer set is designed for archaeal sequences, keep them! If not, you will want to remove archaeal sequences.
+
+[**Edit the code below to remove the taxa that are not targeted by your primers. By the end, you want your phyloseq object to be named ps_final.**]{.underline}
+
+*Note - if you are combining two different datasets from two different sequencing runs (which we can do in the choose your own adventure day), we will need to modify our naming scheme a bit.*
+
+```{r remove unwanted, results="hide", fig.show='hide', warning=FALSE, message=FALSE}
+  ps1 <- subset_taxa(ps, (Order!="Chloroplast") | is.na(Class))
+  ps2 <- subset_taxa(ps1, (Family!="Mitochondria") | is.na(Family))
+ps_bacteria <- subset_taxa(ps2, Kingdom =="Bacteria")
+ps_final <-ps_bacteria
+```
+
+# Day 3
+
+## Analyzing the Data
+
+```{r rarefaction, results="hide", fig.show='hide', warning=FALSE, message=FALSE}
+#install.packages(vegan)
+library(vegan); packageVersion("vegan")
+table <- otu_table(ps_bacteria)
+class(table) <- "matrix"
+rarecurve(table, step=1000, cex=0.5)
+```
+
+```{r subsample phyla, results="hide", fig.show='hide', warning=FALSE, message=FALSE}
+ps_phylum <- tax_glom(ps_relabund, taxrank="Phylum")
+top10 <- names(sort(taxa_sums(ps_phylum), decreasing=TRUE))[1:10]
+ps.top10 <- transform_sample_counts(ps_phylum, function(OTU) OTU/sum(OTU))
+ps.top10 <- prune_taxa(top10, ps.top10)
+plot_bar(ps.top10, fill="Phylum") 
+```
+
+```{r richness, results="hide", fig.show='hide', warning=FALSE, message=FALSE}
+plot_richness(ps_bacteria, x=all_quantile, measures=c("Shannon", "Simpson"), color="site", shape="site")
+```
+
+## Comparing Communities
+
+We can also use multivariate statistics to compare community composition. Here, we will use [Non-metric Multidimensional Scaling]{.underline} ([NMDS]{.underline}) to see how the samples relate to one another. Very simply, NMDS condenses the variation in a community. We then visualize some of this variation (usually the first two axes which capture the largest amount of variation). Patt Schloss has a great video about using NMDS for community composition [here](https://www.youtube.com/watch?v=h7OrVmT7Ja8) (in fact, Patt's videos generally are phenomal. However, Patt created [Mothur](https://mothur.org), a program for 16S rRNA gene analysis. Therefore, the preliminary steps to some of his data analysis will differ from those here. Mothur is a great program, so there's no harm in using it over dada2 if you prefer).
+
+Generally, we think that our ordination accurately represents our data if the stress value is below 0.15 (excellent = stress \< 0.05, great = stress \< 0.1, fine = stress \< 0.2).
+
+```{r NMDS, results="hide", fig.show='hide', warning=FALSE, message=FALSE}
+ps_bacteria_relabund <- ps_bacteria_relabund <- transform_sample_counts(ps_bacteria, function(OTU) OTU/sum(OTU))
+ord.nmds.bray <- ordinate(ps_relabund, method="NMDS", distance="bray")
+ord.nmds.bray
+plot_ordination(ps_relabund, ord.nmds.bray, title="Bray NMDS",   color=as.factor("site", shape="site")
+```
+
+```{r group taxa, results="hide", fig.show='hide', warning=FALSE, message=FALSE}
+ps_phylum <- tax_glom(ps_bacteria, taxrank = "Phylum")
+ps_class <- tax_glom(ps_bacteria, taxrank = "Class")
+ps_family <- tax_glom(ps_bacteria, taxrank = "Family")
+ps_genus <- tax_glom(ps_bacteria, taxrank = "Genus")
+```
