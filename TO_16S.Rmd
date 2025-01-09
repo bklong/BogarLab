@@ -109,3 +109,4 @@ scp -P 22345 -r bklong@bogarprecision.plb.ucdavis.edu:~/TO16S/TO16S.seqs/TO16S_f
 ```
 
 It worked! I now have a folder on my desktop with exclusively 16S TO fastas.
+I moved the folder to the Bogar Lab Project folder in my Documents (under R) on my computer.
