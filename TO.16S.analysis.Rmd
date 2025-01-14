@@ -120,7 +120,7 @@ dadaFs <- dada(filtFs, err=errF)
 ```
 
 ```{r}
-#will remove multithread=TRUE because Windows
+#will remove multithread=TRUE because Windows 
 dadaRs <- dada(filtRs, err=errR)
 ```
 
