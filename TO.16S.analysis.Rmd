@@ -45,17 +45,27 @@ library("dada2")
 path <- "16S/TO16S_filtered" # CHANGE ME to the directory containing the fastq files after unzipping.
 list.files(path)
 ```
-
 ```{r}
 fnFs <- sort(list.files(path, pattern="_R1.fastq.gz", full.names = TRUE))
 fnRs <- sort(list.files(path, pattern="_R2.fastq.gz", full.names = TRUE))
-# Extract sample names, assuming filenames have format: SAMPLENAME_XXX.fastq
-sample.names <- sapply(strsplit(basename(fnFs), "_"), `[`, 1)
+
+# Extract sample names from filenames
+sample.names <- sapply(basename(fnFs), function(x) {
+  parts <- strsplit(x, "_")[[1]]
+  paste(parts[3], parts[4], parts[6], parts[7], sep = "_")
+})
+
+# Remove the names from the vector
+names(sample.names) <- NULL
+
+# Print the sample names
+print(sample.names)
 ```
 
 ```{r}
 plotQualityProfile(fnFs[1:2])
 ```
+
 ```{r}
 plotQualityProfile(fnRs[1:2])
 ```
@@ -68,12 +78,14 @@ names(filtFs) <- sample.names
 names(filtRs) <- sample.names
 ```
 
-Before you run this line, change the values to where you say is a good cutoff for your data:
+Before you run this line, change the values to where you say is a good cutoff for your data: 
 
-```{r}
-out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=c(250,200),maxN=0, maxEE=c(2,2), truncQ=2, rm.phix=TRUE,compress=TRUE, multithread=TRUE, trimLeft = c(19, 20))
+```{r, eval = FALSE}
+out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=c(300,300),maxN=0, maxEE=c(2,2), truncQ=2, rm.phix=TRUE,compress=TRUE, multithread=TRUE, trimLeft = c(19, 20))
 head(out)
 ```
+
+#(for above): I left multithread=TRUE in, but for windows, can remove it. It threw an error that said multithreading was disabled. So, I am assuming it is working now.
 
 do not run this next chunk. It's another FASTQC that we don't necessarily need. Skip.
 
@@ -85,6 +97,8 @@ qc2
 plotQualityProfile(filtFs[1:2])
 plotQualityProfile(filtRs[1:2])
 ```
+
+starting from here:
 
 ```{r}
 errF <- learnErrors(filtFs, multithread=TRUE) # creates an object that contains the errors for the forward sequences
