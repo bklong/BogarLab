@@ -1,0 +1,18 @@
+---
+title: "Using R Studio with our Server"
+author: "Britt"
+date: "2025-01-14"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+type "http://169.237.198.45:8787" into browser on personal computer
+
+sign in with username and password used for bogar lab server
+
+username bklong
+password (insert here)
+
