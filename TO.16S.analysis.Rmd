@@ -98,7 +98,7 @@ plotQualityProfile(filtFs[1:2])
 plotQualityProfile(filtRs[1:2])
 ```
 
-starting from here:
+currently running this chunk:
 
 ```{r}
 #will remove multithread=TRUE (because Windows)
@@ -116,12 +116,12 @@ plotErrors(errR, nominalQ=TRUE) # this plots the reverse error rates
 
 ```{r}
 #will remove multithread=TRUE because Windows
-dadaFs <- dada(filtFs, err=errF, multithread=TRUE)
+dadaFs <- dada(filtFs, err=errF)
 ```
 
 ```{r}
 #will remove multithread=TRUE because Windows
-dadaRs <- dada(filtRs, err=errR, multithread=TRUE)
+dadaRs <- dada(filtRs, err=errR)
 ```
 
 STOP for today
