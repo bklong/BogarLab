@@ -101,8 +101,9 @@ plotQualityProfile(filtRs[1:2])
 starting from here:
 
 ```{r}
-errF <- learnErrors(filtFs, multithread=TRUE) # creates an object that contains the errors for the forward sequences
-errR <- learnErrors(filtRs, multithread=TRUE)# creates an object that contains the errors for the reverse sequences
+#will remove multithread=TRUE (because Windows)
+errF <- learnErrors(filtFs) # creates an object that contains the errors for the forward sequences
+errR <- learnErrors(filtRs)# creates an object that contains the errors for the reverse sequences
 ```
 
 ```{r}
@@ -114,12 +115,16 @@ plotErrors(errR, nominalQ=TRUE) # this plots the reverse error rates
 ```
 
 ```{r}
+#will remove multithread=TRUE because Windows
 dadaFs <- dada(filtFs, err=errF, multithread=TRUE)
 ```
 
 ```{r}
+#will remove multithread=TRUE because Windows
 dadaRs <- dada(filtRs, err=errR, multithread=TRUE)
 ```
+
+STOP for today
 
 ```{r}
 mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE)
