@@ -116,13 +116,13 @@ plotErrors(errR, nominalQ=TRUE) # this plots the reverse error rates
 
 ```{r}
 #will remove multithread=TRUE because Windows
-dadaFs <- dada(filtFs, err = errF, verbose = TRUE)
+dadaFs <- dada(filtFs, err = errF, verbose = TRUE, multithread = TRUE)
 ```
 There are 420 sequence files (both F and R), so therefore there should be 210 samples. That means I expect the output of both the above and below code sections to result in 210 samples each. 
 
 ```{r}
 #will remove multithread=TRUE because Windows 
-dadaRs <- dada(filtRs, err=errR, verbose = TRUE)
+dadaRs <- dada(filtRs, err=errR, verbose = TRUE, multithread=TRUE)
 ```
 
 STOP for today
