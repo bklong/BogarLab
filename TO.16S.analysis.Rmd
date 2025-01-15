@@ -127,7 +127,7 @@ It finally worked! It took about 1.5 hours to run above code. Now let's try the 
 dadaRs <- dada(filtRs, err=errR, verbose = TRUE, multithread=TRUE)
 ```
 
-STOP for today
+It worked! This one was much faster, maybe 1 hr.
 
 ```{r}
 mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE)
