@@ -144,9 +144,9 @@ dim(seqtab) # tell me the dimensions of the sequence table.
 table(nchar(getSequences(seqtab)))
 ```
 
-Optional Step: Edit 250:256 below to indicate the range of sequence lengths that you would like to keep. Otherwise, delete the chunk or comment out the lines.
+Optional Step: Edit 250:256 below to indicate the range of sequence lengths that you would like to keep. Otherwise, delete the chunk or comment out the lines. (I will skip this step due to the new type of primer we used).
 
-```{r}
+```{r, eval = FALSE}
 seqtab2 <- seqtab[,nchar(colnames(seqtab)) %in% 250:256] # remove sequences shorter than 250 (as written) and longer than 256 (as written)
 sum(seqtab2)/sum(seqtab)
 seqtab <- seqtab2 # rename the object you made above to seqtab so you can continue this tutorial without complications. For your own work, I would suggest leaving it named seqtab2 and using "seqtab2" instead of "seqtab" for all steps below. This will help you remember what you were did.
@@ -167,6 +167,8 @@ dim(seqtab.nochim)
 ```{r}
 sum(seqtab.nochim)/sum(seqtab)
 ```
+
+sanity check: this tracks how our data changed over quality control to double check that everything seems reasonable. You will expect to see a big drop in the filtered column, but across the row for a sample, shouldn't change much except in filtered.
 
 ```{r}
 getN <- function(x) sum(getUniques(x))
