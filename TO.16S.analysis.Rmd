@@ -144,14 +144,38 @@ dim(seqtab) # tell me the dimensions of the sequence table.
 table(nchar(getSequences(seqtab)))
 ```
 
+Optional Step: Edit 250:256 below to indicate the range of sequence lengths that you would like to keep. Otherwise, delete the chunk or comment out the lines.
+
 ```{r}
 seqtab2 <- seqtab[,nchar(colnames(seqtab)) %in% 250:256] # remove sequences shorter than 250 (as written) and longer than 256 (as written)
 sum(seqtab2)/sum(seqtab)
 seqtab <- seqtab2 # rename the object you made above to seqtab so you can continue this tutorial without complications. For your own work, I would suggest leaving it named seqtab2 and using "seqtab2" instead of "seqtab" for all steps below. This will help you remember what you were did.
 ```
 
-DAY 2
+remove chimeras:
 
+```{r}
+seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
+```
 
+let's take a look!
+
+```{r}
+dim(seqtab.nochim)
+```
+
+```{r}
+sum(seqtab.nochim)/sum(seqtab)
+```
+
+```{r}
+getN <- function(x) sum(getUniques(x))
+track <- cbind(out, sapply(dadaFs, getN), sapply(dadaRs, getN), sapply(mergers, getN), rowSums(seqtab.nochim))
+colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
+rownames(track) <- sample.names
+track
+```
+
+Assign Taxonomy
 
 
