@@ -1,0 +1,84 @@
+---
+title: "ecogen.project"
+author: "Britt"
+date: "2025-01-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+with help from ChatGPT and showing it what figure and data I have from paper:
+
+```{r}
+# Load libraries
+library(ggplot2)
+library(reshape2)
+library(dplyr)
+
+# Example data (replace with your actual data)
+otu_data <- data.frame(
+  OTUID = c("OTU1", "OTU2", "OTU3", "OTU4"),
+  qval = c(0.01, 0.02, 0.05, 0.03),
+  delta.prevalence = c(0.80, 0.75, 0.60, 0.90),
+  taxa = c("Taxa1", "Taxa2", "Taxa3", "Taxa4")
+)
+
+# Filter OTUs with delta.prevalence ≥ 75%
+filtered_otus <- otu_data %>%
+  filter(delta.prevalence >= 0.75) %>%
+  arrange(desc(delta.prevalence))
+
+# Example presence-absence matrix (replace with your actual matrix)
+presence_absence_matrix <- matrix(
+  data = c(1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1),
+  nrow = 4,
+  ncol = 3,
+  dimnames = list(OTUID = c("OTU1", "OTU2", "OTU3", "OTU4"),
+                  Sample = c("Sample1", "Sample2", "Sample3"))
+)
+
+# Filter matrix to include only selected OTUs
+filtered_matrix <- presence_absence_matrix[rownames(presence_absence_matrix) %in% filtered_otus$OTUID, ]
+
+# Sort OTUs by delta.prevalence
+sorted_matrix <- filtered_matrix[order(match(rownames(filtered_matrix), filtered_otus$OTUID)), ]
+
+# Convert matrix to long format for ggplot
+heatmap_data <- melt(sorted_matrix)
+colnames(heatmap_data) <- c("OTUID", "Sample", "Presence")
+
+# Plot heatmap
+ggplot(heatmap_data, aes(x = Sample, y = OTUID, fill = Presence)) +
+  geom_tile(color = "white") +
+  scale_fill_manual(values = c("0" = "white", "1" = "black")) +
+  theme_minimal() +
+  labs(title = "Heatmap of OTU Presence-Absence",
+       x = "Samples",
+       y = "OTUs")
+```
+
+from authors' github:
+
+```{r}
+ ### Taxa heatmap   
+    make.heatmap.binary(otu0=otu, map0=map[c(hmongthai,hmong_firstgen_cs),], min.prevalence=0.75, baseline.groups="HmongThai", show.colnames=T, sig.level=1, outputfn="heatmap.diffotu.HT-H1.binary.p75.pdf",
+                        is.otu=T, taxamapfn="/Users/pvangay/Dropbox/UMN/KnightsLab/IMP/ANALYSES/ALL_RUNS/denovo/rep_set.tax")
+```
+
+after sending above chunk to ChatGPT, with input from paper (figure and some data), this is ChatGPT's recreation of the above chunk but without using the custom fucntion "make.heatmap.binary":
+
+```{r}
+# Filter OTUs by prevalence
+filtered_otus <- otu %>%
+  filter(rowMeans(otu[map$Group == "HmongThai", ]) >= 0.75)
+
+# Sort by prevalence
+sorted_otus <- filtered_otus[order(-rowMeans(filtered_otus)), ]
+
+# Plot binary heatmap
+heatmap(as.matrix(sorted_otus), col = c("white", "black"), scale = "none",
+        xlab = "Samples", ylab = "OTUs", main = "Binary Heatmap")
+```
+
