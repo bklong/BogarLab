@@ -177,7 +177,51 @@ colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "n
 rownames(track) <- sample.names
 track
 ```
+The above output looks weird...lots of losses, but we will push forward for now.
 
 Assign Taxonomy
+
+Download SILVA database first. Change path to windows path by finding file and copying path, then pasting. Change to forward slashed and remove C:.
+
+```{r}
+taxa <- assignTaxonomy(seqtab.nochim, "/Users/britt/Downloads/silva_nr99_v138.2_toSpecies_trainset.fa.gz")
+taxa.print <- taxa # Removing sequence rownames for display only
+rownames(taxa.print) <- NULL
+head(taxa.print)
+```
+
+```{r}
+#BiocManager::install("Biostrings")
+library(Biostrings); packageVersion("Biostrings")
+library(ggplot2); packageVersion("ggplot2")
+library("phyloseq"); packageVersion("phyloseq")
+theme_set(theme_bw())
+
+#install.packages("remotes")
+#remotes::install_github("microbiome/microbiome")
+library("microbiome")
+```
+
+```{r}
+#sam_data<-read.csv("../16S/SeagrassMetadata.csv", header=TRUE, row.names=1)
+
+ps <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE), 
+               #sample_data(sam_data), 
+               tax_table(taxa))
+
+dna <- Biostrings::DNAStringSet(taxa_names(ps))
+names(dna) <- taxa_names(ps)
+ps <- merge_phyloseq(ps, dna)
+taxa_names(ps) <- paste0("ASV", seq(ntaxa(ps)))
+ps
+```
+
+Removing Unwanted Data
+
+
+
+
+
+
 
 
