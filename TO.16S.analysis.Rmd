@@ -198,17 +198,16 @@ install.packages("phyloseq")
 
 
 ```{r}
-#BiocManager::install("Biostrings")
+
 library(Biostrings); packageVersion("Biostrings")
 library(ggplot2); packageVersion("ggplot2")
 library("phyloseq"); packageVersion("phyloseq")
 theme_set(theme_bw())
 
-#install.packages("remotes")
-#remotes::install_github("microbiome/microbiome")
 library("microbiome")
 ```
 
+looks like I need to add my metadata below before running
 ```{r}
 #sam_data<-read.csv("../16S/SeagrassMetadata.csv", header=TRUE, row.names=1)
 
