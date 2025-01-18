@@ -224,6 +224,31 @@ ps
 
 Removing Unwanted Data
 
+-------------------------------------
+
+~intermission~
+Let's try dada again, first with dereplication, then with pooling.
+
+depreplication
+
+```{r}
+derepFs <- derepFastq(filtFs, verbose=TRUE)
+derepRs <- derepFastq(filtRs, verbose=TRUE)
+# Name the derep-class objects by the sample names
+names(derepFs) <- sample.names
+names(derepRs) <- sample.names
+```
+
+pseudo pool
+
+```{r}
+dadaFs.pool <- dada(derepFs, err = errF, verbose = TRUE, multithread = TRUE, pool = "pseudo")
+```
+
+```{r}
+dadaRs.pool <- dada(derepRs, err = errF, verbose = TRUE, multithread = TRUE, pool = "pseudo")
+```
+
 
 
 
