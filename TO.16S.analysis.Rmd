@@ -115,6 +115,12 @@ errR <- learnErrors(filtRs, multithread=TRUE)# creates an object that contains t
 ```
 
 ```{r}
+write.csv(errF, file = "errF.csv", row.names = TRUE)
+write.csv(errR, file = "errR.csv", row.names = TRUE)
+```
+
+
+```{r}
 plotErrors(errF, nominalQ=TRUE) # this plots the forward error rates
 ```
 
@@ -134,15 +140,15 @@ names(derepFs) <- sample.names
 names(derepRs) <- sample.names
 ```
 
+
+
 ```{r}
-#will remove multithread=TRUE because Windows
-dadaFs <- dada(filtFs, err = errF, verbose = TRUE, multithread = TRUE)
+dadaFs <- dada(derepFs, err = errF, verbose = TRUE, multithread = TRUE)
 ```
 It finally worked! It took about 1.5 hours to run above code. Now let's try the next chunk...
 
 ```{r}
-#will remove multithread=TRUE because Windows 
-dadaRs <- dada(filtRs, err=errR, verbose = TRUE, multithread=TRUE)
+dadaRs <- dada(derepRs, err=errR, verbose = TRUE, multithread=TRUE)
 ```
 
 It worked! This one was much faster, maybe 1 hr.
