@@ -92,6 +92,12 @@ head(out)
 
 #(for above): I left multithread=TRUE in, but for windows, can remove it. It threw an error that said multithreading was disabled. So, I am assuming it is working now.
 
+If the above code ever finishes, I can save my progress by outputting it as a csv that I can load if need be:
+
+```{r}
+write.csv(out, file = "filterAndTrim_output.csv", row.names = TRUE)
+```
+
 do not run this next chunk. It's another FASTQC that we don't necessarily need. Skip.
 
 ```{r, eval = FALSE}
@@ -118,7 +124,7 @@ plotErrors(errR, nominalQ=TRUE) # this plots the reverse error rates
 
 There are 420 sequence files (both F and R), so therefore there should be 210 samples. That means I expect the output of both the above and below code sections to result in 210 samples each. 
 
-depreplication
+dereplication
 
 ```{r}
 derepFs <- derepFastq(filtFs, verbose=TRUE)
