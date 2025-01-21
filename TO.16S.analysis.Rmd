@@ -39,12 +39,17 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
 
 ```{r}
 BiocManager::install("dada2")
+```
+
+```{r}
 library("dada2")
 ```
+
 ```{r}
 path <- "16S/TO16S_filtered" # CHANGE ME to the directory containing the fastq files after unzipping.
 list.files(path)
 ```
+
 ```{r}
 fnFs <- sort(list.files(path, pattern="_R1.fastq.gz", full.names = TRUE))
 fnRs <- sort(list.files(path, pattern="_R2.fastq.gz", full.names = TRUE))
@@ -80,7 +85,7 @@ names(filtRs) <- sample.names
 
 Before you run this line, change the values to where you say is a good cutoff for your data: 
 
-```{r, eval = FALSE}
+```{r}
 out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=c(300,300),maxN=0, maxEE=c(2,2), truncQ=2, rm.phix=TRUE,compress=TRUE, multithread=TRUE, trimLeft = c(19, 20))
 head(out)
 ```
@@ -98,12 +103,9 @@ plotQualityProfile(filtFs[1:2])
 plotQualityProfile(filtRs[1:2])
 ```
 
-
-
 ```{r}
-#will remove multithread=TRUE (because Windows)
-errF <- learnErrors(filtFs) # creates an object that contains the errors for the forward sequences
-errR <- learnErrors(filtRs)# creates an object that contains the errors for the reverse sequences
+errF <- learnErrors(filtFs, multithread=TRUE) # creates an object that contains the errors for the forward sequences
+errR <- learnErrors(filtRs, multithread=TRUE)# creates an object that contains the errors for the reverse sequences
 ```
 
 ```{r}
@@ -115,6 +117,16 @@ plotErrors(errR, nominalQ=TRUE) # this plots the reverse error rates
 ```
 
 There are 420 sequence files (both F and R), so therefore there should be 210 samples. That means I expect the output of both the above and below code sections to result in 210 samples each. 
+
+depreplication
+
+```{r}
+derepFs <- derepFastq(filtFs, verbose=TRUE)
+derepRs <- derepFastq(filtRs, verbose=TRUE)
+# Name the derep-class objects by the sample names
+names(derepFs) <- sample.names
+names(derepRs) <- sample.names
+```
 
 ```{r}
 #will remove multithread=TRUE because Windows
