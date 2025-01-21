@@ -168,6 +168,20 @@ dadaRs <- dada(derepRs, err=errR, verbose = TRUE, multithread=TRUE)
 
 It worked! This one was much faster, maybe 1 hr.
 
+----------------------------------------------------------
+OR TO POOL:
+
+pseudo pool
+
+```{r, eval = FALSE}
+dadaFs.pool <- dada(derepFs, err = errF, verbose = TRUE, multithread = TRUE, pool = "pseudo")
+```
+
+```{r, eval = FALSE}
+dadaRs.pool <- dada(derepRs, err = errF, verbose = TRUE, multithread = TRUE, pool = "pseudo")
+```
+------------------------------------------------------------
+
 ```{r}
 mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE)
 head(mergers[[1]])
@@ -235,7 +249,6 @@ install.packages("phyloseq")
 ```
 
 
-
 ```{r}
 
 library(Biostrings); packageVersion("Biostrings")
@@ -244,6 +257,10 @@ library("phyloseq"); packageVersion("phyloseq")
 theme_set(theme_bw())
 
 library("microbiome")
+```
+
+```{r}
+library("phyloseq")
 ```
 
 looks like I need to add my metadata below before running
@@ -263,30 +280,6 @@ ps
 
 Removing Unwanted Data
 
--------------------------------------
-
-~intermission~
-Let's try dada again, first with dereplication, then with pooling.
-
-depreplication
-
-```{r}
-derepFs <- derepFastq(filtFs, verbose=TRUE)
-derepRs <- derepFastq(filtRs, verbose=TRUE)
-# Name the derep-class objects by the sample names
-names(derepFs) <- sample.names
-names(derepRs) <- sample.names
-```
-
-pseudo pool
-
-```{r}
-dadaFs.pool <- dada(derepFs, err = errF, verbose = TRUE, multithread = TRUE, pool = "pseudo")
-```
-
-```{r}
-dadaRs.pool <- dada(derepRs, err = errF, verbose = TRUE, multithread = TRUE, pool = "pseudo")
-```
 
 
 
