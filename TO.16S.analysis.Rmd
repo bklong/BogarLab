@@ -322,9 +322,14 @@ plot_bar(ps.top10, fill="Phylum")
 
 
 look at community diversity:
+
+richness = # of species
+evenness = how many individuals in each of the species (more diverse if each species has a more even amount of individuals)
 ```{r}
 plot_richness(ps_final, x=all_quantile, measures=c("Shannon", "Simpson"), color="site", shape="site")
 ```
+
+Note: Unifrac is helpful to look at diversity while accounting for OTUs being more similar to each other phylogenetically (but requires a phylogenetic tree)...we will skip this for this assignment
 
 Comparing Communities
 
