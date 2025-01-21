@@ -115,8 +115,8 @@ errR <- learnErrors(filtRs, multithread=TRUE)# creates an object that contains t
 ```
 
 ```{r}
-write.csv(errF, file = "errF.csv", row.names = TRUE)
-write.csv(errR, file = "errR.csv", row.names = TRUE)
+saveRDS(errF, "errF.rds")
+saveRDS(errR, "errR.rds")
 ```
 
 
@@ -140,6 +140,21 @@ names(derepFs) <- sample.names
 names(derepRs) <- sample.names
 ```
 
+```{r}
+#saved to computer but did not push. pushing yeeted R
+saveRDS(derepFs, "derepFs.rds")
+saveRDS(derepRs, "derepRs.rds")
+```
+
+```{r}
+derepFs <- readRDS("derepFs.rds")
+derepRs <- readRDS("derepRs.rds")
+```
+
+```{r}
+errF <- read.csv("errF.csv")
+errR <- read.csv("errR.csv")
+```
 
 
 ```{r}
