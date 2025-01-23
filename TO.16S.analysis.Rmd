@@ -202,6 +202,9 @@ mergers <- mergePairs(dadaFs, derepFs, dadaRs, derepRs, verbose=TRUE)
 head(mergers[[1]])
 ```
 
+```{r}
+mergers <- readRDS("mergers.rds")
+```
 
 ```{r}
 seqtab <- makeSequenceTable(mergers) # make sequence table
@@ -225,6 +228,12 @@ remove chimeras:
 ```{r}
 seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
 ```
+
+
+```{r}
+saveRDS(seqtab.nochim, "seqtab.nochim.rds")
+```
+
 
 let's take a look!
 
