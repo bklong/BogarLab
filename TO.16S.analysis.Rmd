@@ -152,8 +152,8 @@ derepRs <- readRDS("derepRs.rds")
 ```
 
 ```{r}
-errF <- read.csv("errF.csv")
-errR <- read.csv("errR.csv")
+errF <- readRDS("errF.rds")
+errR <- readRDS("errR.rds")
 ```
 
 
@@ -167,6 +167,16 @@ dadaRs <- dada(derepRs, err=errR, verbose = TRUE, multithread=TRUE)
 ```
 
 It worked! This one was much faster, maybe 1 hr.
+
+```{r}
+saveRDS(dadaFs, "dadaFs.rds")
+saveRDS(dadaRs, "dadaRs.rds")
+```
+
+```{r}
+dadaFs <- readRDS("dadaFs.rds")
+dadaRs <- readRDS("dadaRs.rds")
+```
 
 ----------------------------------------------------------
 OR TO POOL:
