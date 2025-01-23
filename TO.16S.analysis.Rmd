@@ -256,6 +256,15 @@ track
 ```
 The above output looks weird...lots of losses, but we will push forward for now.
 
+```{r}
+seqtab.nochim <- readRDS("seqtab.nochim.rds")
+```
+
+```{r}
+library(dada2)
+```
+
+
 Assign Taxonomy
 
 Download SILVA database first. Change path to windows path by finding file and copying path, then pasting. Change to forward slashed and remove C:.
