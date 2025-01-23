@@ -170,6 +170,9 @@ It worked! This one was much faster, maybe 1 hr.
 
 ```{r}
 saveRDS(dadaFs, "dadaFs.rds")
+```
+
+```{r}
 saveRDS(dadaRs, "dadaRs.rds")
 ```
 
@@ -192,8 +195,10 @@ dadaRs.pool <- dada(derepRs, err = errF, verbose = TRUE, multithread = TRUE, poo
 ```
 ------------------------------------------------------------
 
+start here after saving dada RDS:
+
 ```{r}
-mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE)
+mergers <- mergePairs(dadaFs, derepFs, dadaRs, derepRs, verbose=TRUE)
 head(mergers[[1]])
 ```
 
