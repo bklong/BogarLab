@@ -314,6 +314,8 @@ names(dna) <- taxa_names(ps)
 ps <- merge_phyloseq(ps, dna)
 taxa_names(ps) <- paste0("ASV", seq(ntaxa(ps)))
 ps
+
+saveRDS(ps, "ps.rds")
 ```
 
 Removing Unwanted Data
