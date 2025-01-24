@@ -360,14 +360,16 @@ to compare communities between treatments, rarify (subsample)
 bar graph / community composition:
 
 ```{r}
-ps_relabund <- transform_sample_counts(ps_final, function(OTU) OTU/sum(OTU))
+ps_final <- prune_samples(sample_sums(ps_final) > 0, ps_final)
 
-ps_phylum <- tax_glom(ps_relabund, taxrank="Phylum")
+ps_phylum <- tax_glom(ps_final, taxrank="Phylum")
 top10 <- names(sort(taxa_sums(ps_phylum), decreasing=TRUE))[1:10]
 ps.top10 <- transform_sample_counts(ps_phylum, function(OTU) OTU/sum(OTU))
 ps.top10 <- prune_taxa(top10, ps.top10)
 plot_bar(ps.top10, fill="Phylum") 
 ```
+
+
 
 
 look at community diversity:
@@ -383,7 +385,7 @@ Note: Unifrac is helpful to look at diversity while accounting for OTUs being mo
 Comparing Communities
 
 ```{r}
-ord.nmds.bray <- ordinate(ps_relabund, method="NMDS", distance="bray")
+ord.nmds.bray <- ordinate(ps_final, method="NMDS", distance="bray")
 ord.nmds.bray
 plot_ordination(ps_relabund, ord.nmds.bray, title="Bray NMDS",   color=as.factor("site", shape="site"))
 ```
