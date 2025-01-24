@@ -303,10 +303,10 @@ library("phyloseq")
 
 looks like I need to add my metadata below before running
 ```{r}
-#sam_data<-read.csv("../16S/SeagrassMetadata.csv", header=TRUE, row.names=1)
+metadata <- read.csv("16S/16S.metadata.csv", header=TRUE, row.names=1)
 
 ps <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE), 
-               #sample_data(sam_data), 
+               sample_data(metadata), 
                tax_table(taxa))
 
 dna <- Biostrings::DNAStringSet(taxa_names(ps))
@@ -314,9 +314,13 @@ names(dna) <- taxa_names(ps)
 ps <- merge_phyloseq(ps, dna)
 taxa_names(ps) <- paste0("ASV", seq(ntaxa(ps)))
 ps
-
-saveRDS(ps, "ps.rds")
 ```
+
+```{r}
+saveRDS(ps, "ps__.rds")
+```
+
+Use ps__.rds if you need to reload it.
 
 Removing Unwanted Data
 
@@ -330,6 +334,11 @@ The below code removes all chloroplasts, all mitochondira, and anything that is 
 ps_bacteria <- subset_taxa(ps2, Kingdom =="Bacteria")
 ps_final <-ps_bacteria
 ```
+
+```{r}
+saveRDS(ps_final, "ps_final.rds")
+```
+
 
 Analyzing the Data
 
