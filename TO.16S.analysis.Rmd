@@ -92,10 +92,12 @@ head(out)
 
 #(for above): I left multithread=TRUE in, but for windows, can remove it. It threw an error that said multithreading was disabled. So, I am assuming it is working now.
 
-If the above code ever finishes, I can save my progress by outputting it as a csv that I can load if need be:
+If the above code ever finishes, I can save my progress by outputting it as an RDS that I can load if need be:
 
 ```{r}
-write.csv(out, file = "filterAndTrim_output.csv", row.names = TRUE)
+saveRDS(out, "out.rds")
+saveRDS(filtFs, "filtFs.rds")
+saveRDS(filtRs, "filtRs.rds")
 ```
 
 do not run this next chunk. It's another FASTQC that we don't necessarily need. Skip.
@@ -255,6 +257,11 @@ rownames(track) <- sample.names
 track
 ```
 The above output looks weird...lots of losses, but we will push forward for now.
+
+```{r}
+saveRDS(track, "track.rds")
+```
+
 
 ```{r}
 seqtab.nochim <- readRDS("seqtab.nochim.rds")
