@@ -346,6 +346,10 @@ ps_final <-ps_bacteria
 saveRDS(ps_final, "ps_final.rds")
 ```
 
+```{r}
+ps_final <- readRDS("ps_final.rds")
+```
+
 
 Analyzing the Data
 
@@ -373,18 +377,19 @@ ps_phylum <- tax_glom(ps_final, taxrank="Phylum")
 top10 <- names(sort(taxa_sums(ps_phylum), decreasing=TRUE))[1:10]
 ps.top10 <- transform_sample_counts(ps_phylum, function(OTU) OTU/sum(OTU))
 ps.top10 <- prune_taxa(top10, ps.top10)
-plot_bar(ps.top10, fill="Phylum") 
+community_comp <- plot_bar(ps.top10, fill="Phylum") 
 ```
 
-
-
+```{r}
+ggsave("TO16S.comm.comp.png", plot = community_comp, width = 8, height = 6, dpi = 300)
+```
 
 look at community diversity:
 
 richness = # of species
 evenness = how many individuals in each of the species (more diverse if each species has a more even amount of individuals)
 ```{r}
-plot_richness(ps_final, x=all_quantile, measures=c("Shannon", "Simpson"), color="site", shape="site")
+plot_richness(ps_final, measures=c("Shannon", "Simpson"), color="treatment")
 ```
 
 Note: Unifrac is helpful to look at diversity while accounting for OTUs being more similar to each other phylogenetically (but requires a phylogenetic tree)...we will skip this for this assignment
@@ -394,7 +399,12 @@ Comparing Communities
 ```{r}
 ord.nmds.bray <- ordinate(ps_final, method="NMDS", distance="bray")
 ord.nmds.bray
-plot_ordination(ps_relabund, ord.nmds.bray, title="Bray NMDS",   color=as.factor("site", shape="site"))
+```
+
+can't find ps_relabund below
+
+```{r}
+plot_ordination(ps_relabund, ord.nmds.bray, title="Bray NMDS",   color=as.factor("treatment"))
 ```
 
 ```{r}
