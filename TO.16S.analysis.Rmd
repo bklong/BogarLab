@@ -381,6 +381,14 @@ community_comp <- plot_bar(ps.top10, fill="Phylum")
 ```
 
 ```{r}
+sample_data(ps.top10)$treatment <- as.factor(sample_data(ps.top10)$treatment)
+ps.top10 <- subset_samples(ps.top10, !is.na(treatment))
+
+community_comp <- plot_bar(ps.top10, x = "treatment", fill = "Phylum") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+community_comp
+```
+
+```{r}
 ggsave("TO16S.comm.comp.png", plot = community_comp, width = 8, height = 6, dpi = 300)
 ```
 
