@@ -256,6 +256,40 @@ top29.PM.interaction.named <- PM.counts.normal.log.named[top29.PM.interaction, ]
 pheatmap(top29.PM.interaction.named, scale = "row")
 ```
 
+let's try making a volcano plot:
+
+```{r}
+# Typically contains columns: logFC, PValue, and FDR
+library(ggplot2)
+library(dplyr)
+
+# Extract the DEGs from edgeR results properly
+deg_results <- topTags(interaction.lrt.PM, n = Inf)$table %>%
+  as.data.frame() %>%  # Ensure it's a proper data frame
+  mutate(
+    neg_log10_pval = -log10(PValue),  # Convert p-value to -log10 scale
+    significance = case_when(
+      FDR < 0.05 & abs(logFC) > 0.5 ~ "Significant",  # Adjust thresholds as needed
+      TRUE ~ "Not Significant"
+    )
+  )
+
+# Volcano plot
+ggplot(deg_results, aes(x = logFC, y = neg_log10_pval, color = significance)) +
+  geom_point(alpha = 0.6) +
+  scale_color_manual(values = c("Significant" = "red", "Not Significant" = "gray")) +
+  theme_minimal() +
+  labs(
+    x = "Log2 Fold Change",
+    y = "-Log10 P-value",
+    title = "Volcano Plot of Differential Gene Expression"
+  ) +
+  geom_hline(yintercept = -log10(0.05), linetype = "dashed") +  # FDR threshold
+  geom_vline(xintercept = c(-0.5, 0.5), linetype = "dashed")  # Fold-change cutoff
+
+
+```
+
 
 let's subset some genes to start looking at their function:
 
