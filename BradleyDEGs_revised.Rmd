@@ -289,6 +289,42 @@ ggplot(deg_results, aes(x = logFC, y = neg_log10_pval, color = significance)) +
 
 
 ```
+let's adjust our heatmap to label significant genes:
+
+```{r}
+deg_results <- topTags(interaction.lrt.PM, n = Inf)$table %>%
+  as.data.frame() %>%
+  rownames_to_column(var = "Gene") %>%  # Convert rownames to a column
+  mutate(
+    neg_log10_pval = -log10(FDR),  
+    significance = case_when(
+      FDR < 0.05 & abs(logFC) > 0.5 ~ "Significant (FDR < 0.05)",
+      TRUE ~ "Not Significant"
+    ),
+    gene_label = ifelse(significance == "Significant (FDR < 0.05)", Gene, NA)  # Use new Gene column
+  )
+
+
+# Volcano plot
+ggplot(deg_results, aes(x = logFC, y = neg_log10_pval, color = significance)) +
+  geom_point(alpha = 0.6) +
+  geom_text_repel(
+    data = deg_results %>% filter(Gene == "PSME_21469"),  
+    aes(label = "Cytochrome P450"), 
+    max.overlaps = 15,
+    size = 3
+  ) +
+  scale_color_manual(values = c("Significant (FDR < 0.05)" = "red", "Not Significant" = "gray")) +
+  theme_minimal() +
+  labs(
+    x = "Log2 Fold Change",
+    y = "-Log10 FDR",
+    title = "DGE of Host Plant in Response to Drought x Inoculation Treatment"
+  ) +
+  geom_hline(yintercept = -log10(0.05), linetype = "dashed") +  # FDR threshold
+  geom_vline(xintercept = c(-0.5, 0.5), linetype = "dashed")  # Fold-change cutoff
+
+```
 
 
 let's subset some genes to start looking at their function:
