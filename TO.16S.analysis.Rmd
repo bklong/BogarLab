@@ -85,6 +85,8 @@ names(filtRs) <- sample.names
 
 Before you run this line, change the values to where you say is a good cutoff for your data: 
 
+#next attempt try truncating at 250, 250 instead of 300, 300
+
 ```{r}
 out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=c(300,300),maxN=0, maxEE=c(2,2), truncQ=2, rm.phix=TRUE,compress=TRUE, multithread=TRUE, trimLeft = c(19, 20))
 head(out)
