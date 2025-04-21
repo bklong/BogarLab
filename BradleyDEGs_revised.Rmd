@@ -304,6 +304,8 @@ deg_results <- topTags(interaction.lrt.PM, n = Inf)$table %>%
     gene_label = ifelse(significance == "Significant (FDR < 0.05)", Gene, NA)  # Use new Gene column
   )
 
+library(ggrepel)
+
 
 # Volcano plot
 ggplot(deg_results, aes(x = logFC, y = neg_log10_pval, color = significance)) +
@@ -359,13 +361,69 @@ write.csv(PM.interaction.DEGs,"PM.interaction.DEGs.csv")
 
 I will now make a new doc to use this dataframe for gene function stuff
 
+----------------------------------------------------------------------
+
 4/21/25
 
 Let's try to filter PSME DEGs so that I can compare the 29 sig DEGs in the interaction treatment to the T/C and M/NM treatments alone. 
 
+```{r}
+print(PM.interaction.DEGs)
+```
+
+let's move rownames to a column (make a column of gene names)
+```{r}
+library(tibble)
+
+PM.interaction.DEGs.col <- rownames_to_column(PM.interaction.DEGs, var = "Gene")
+PM.interaction.DEGs.col
+```
+
+now let's extract our 29 genes of interest from this df:
+```{r}
+genes_of_interest <- PM.interaction.DEGs.col$Gene  
+genes_of_interest
+```
+
+perfect, before we can start filtering for these genes in the other two treatments, we need dfs that contain ALL gene expression for those two treatments:
+```{r}
+all.genes.PM.trt <- topTags(trt.lrt.PM, n = Inf)$table
+all.genes.PM.sp <- topTags(sp.lrt.PM, n = Inf)$table
+
+all.genes.PM.trt.col <- rownames_to_column(all.genes.PM.trt, var = "Gene")
+all.genes.PM.trt.col
+all.genes.PM.sp.col <- rownames_to_column(all.genes.PM.sp, var = "Gene")
+all.genes.PM.sp.col
+```
 
 
+let's try filtering for these genes only in the other two treatment scenarios:
+```{r}
+filtered.genes.PM.trt <- all.genes.PM.trt.col %>%
+  filter(Gene %in% genes_of_interest)
+filtered.genes.PM.sp <- all.genes.PM.sp.col %>%
+  filter(Gene %in% genes_of_interest)
 
+filtered.genes.PM.sp
+filtered.genes.PM.trt
+```
+
+compare side-by-side:
+```{r}
+
+PM.interaction.DEGs.comparison <- PM.interaction.DEGs.col %>%
+  inner_join(filtered.genes.PM.trt, by = "Gene", suffix = c("_interaction", "_trt")) %>%
+  inner_join(filtered.genes.PM.sp, by = "Gene")
+
+PM.interaction.DEGs.comparison
+```
+
+let's retain only the LogFC and FDR columns for ease of comparison:
+```{r}
+comparison <- PM.interaction.DEGs.comparison %>%
+  select(Gene, starts_with("logFC"), starts_with("FDR"))
+comparison
+```
 
 
 
