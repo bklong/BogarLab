@@ -325,6 +325,26 @@ ggplot(deg_results, aes(x = logFC, y = neg_log10_pval, color = significance)) +
   geom_vline(xintercept = c(-0.5, 0.5), linetype = "dashed")  # Fold-change cutoff
 
 ```
+```{r}
+# Volcano plot
+ggplot(deg_results, aes(x = logFC, y = neg_log10_pval, color = significance)) +
+  geom_point(alpha = 0.6) +
+  geom_text_repel(
+    data = deg_results %>% filter(significance == "Significant (FDR < 0.05)"),  
+    aes(label = Gene), 
+    max.overlaps = 15,
+    size = 3
+  ) +
+  scale_color_manual(values = c("Significant (FDR < 0.05)" = "red", "Not Significant" = "gray")) +
+  theme_minimal() +
+  labs(
+    x = "Log2 Fold Change",
+    y = "-Log10 FDR",
+    title = "DGE of Host Plant in Response to Drought x Inoculation Treatment"
+  ) +
+  geom_hline(yintercept = -log10(0.05), linetype = "dashed") +  # FDR threshold
+  geom_vline(xintercept = c(-0.5, 0.5), linetype = "dashed")  # Fold-change cutoff
+```
 
 
 let's subset some genes to start looking at their function:
@@ -338,5 +358,16 @@ write.csv(PM.interaction.DEGs,"PM.interaction.DEGs.csv")
 ```
 
 I will now make a new doc to use this dataframe for gene function stuff
+
+4/21/25
+
+Let's try to filter PSME DEGs so that I can compare the 29 sig DEGs in the interaction treatment to the T/C and M/NM treatments alone. 
+
+
+
+
+
+
+
 
 
