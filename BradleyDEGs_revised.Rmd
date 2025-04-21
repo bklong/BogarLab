@@ -425,6 +425,34 @@ comparison <- PM.interaction.DEGs.comparison %>%
 comparison
 ```
 
+let's make a heatmap to compare expression across treatments!
+```{r}
+logfc_matrix <- comparison %>%
+  column_to_rownames("Gene") %>%
+  select(starts_with("logFC")) %>%
+  as.matrix()
+
+# Rename treatment columns to more intuitive labels
+colnames(logfc_matrix) <- c("Interaction", "Drought", "Mycorrhization")
+
+```
+
+heatmap:
+```{r}
+library(pheatmap)
+library(viridis)
+
+pheatmap(logfc_matrix,
+         cluster_rows = TRUE,
+         cluster_cols = TRUE,
+         scale = "none",  # or "row" for z-scores per gene
+         color = colorRampPalette(c("blue", "white", "orange"))(100),
+         main = "PSME Gene Expression: Log Fold Change Across Treatments",
+         fontsize_row = 8,  # Adjust font size for row labels
+         angle_col = 0)    # Rotate column labels to 0° (horizontal)
+
+
+```
 
 
 
