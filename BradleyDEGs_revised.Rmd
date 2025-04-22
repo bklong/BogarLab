@@ -451,9 +451,28 @@ pheatmap(logfc_matrix,
          fontsize_row = 8,  # Adjust font size for row labels
          angle_col = 0)    # Rotate column labels to 0° (horizontal)
 
+```
+
+let's try naming the genes on the y axis
+
+```{r}
+rownames(logfc_matrix)
+
+new_gene_names <- c("CYP71", "auxin signaling", "sugar metabolism; stress/defense", "CRK", "TIR-NLR-like", "unkown", "sugar metabolism; stress", "specialized metabolism", "unknown", "bHLH", "DCN1", "RdRP", "glycogen + 2ary metabolism; stress", "USP", "MKS1-like", "cell signaling; metabolism; stress", "antibiotic synthesis", "GH16 XET cell wall mod", "pectin cell wall mod", "stress/defense", "cell signaling; post-translational mod", "aa + 2ary metabolism", "sugar transporter", "protein-protein", "cell signaling", "sugar transporter", "BURP", "USP", "XTH")
+
+rownames(logfc_matrix) <- new_gene_names
 
 ```
 
-
+```{r}
+pheatmap(logfc_matrix,
+         cluster_rows = TRUE,
+         cluster_cols = TRUE,
+         scale = "none",  # or "row" for z-scores per gene
+         color = colorRampPalette(c("blue", "white", "orange"))(100),
+         main = "PSME Gene Expression: Log Fold Change Across Treatments",
+         fontsize_row = 8,  # Adjust font size for row labels
+         angle_col = 0)    # Rotate column labels to 0° (horizontal)
+```
 
 
