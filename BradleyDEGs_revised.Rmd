@@ -475,4 +475,49 @@ pheatmap(logfc_matrix,
          angle_col = 0)    # Rotate column labels to 0° (horizontal)
 ```
 
+We're going to attempt an upset plot:
+
+```{r}
+library(UpSetR)
+library(ComplexUpset)
+```
+
+filter DEGs for FDR value:
+```{r}
+interaction.FDR.0.05 <- topTags(interaction.lrt.PM, n = Inf, p.value = 0.05)$table
+sp.FDR.0.05 <- topTags(sp.lrt.PM, n = Inf, p.value = 0.05)$table
+trt.FDR.0.05 <- topTags(trt.lrt.PM, n = Inf, p.value = 0.05)$table
+```
+
+
+make vectors of genes in different treatment groupings:
+```{r}
+sp.degs <- rownames(sp.FDR.0.05) 
+trt.degs <- rownames(trt.FDR.0.05)
+interaction.degs <- rownames(interaction.FDR.0.05)
+```
+
+make list of gene sets:
+```{r}
+gene.sets <- list(
+  Mycorrhization = sp.degs,
+  Drought = trt.degs,
+  Interaction = interaction.degs
+)
+```
+
+
+make plot:
+```{r}
+library(ComplexUpset)
+upset(
+  fromList(gene.sets),
+  intersect = c("Mycorrhization", "Drought", "Interaction")
+)
+```
+
+
+
+
+
 
