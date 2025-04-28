@@ -510,11 +510,21 @@ gene.sets <- list(
 make plot:
 ```{r}
 library(ComplexUpset)
-upset(
-  fromList(gene.sets),
-  intersect = c("Mycorrhization", "Drought", "Interaction")
-)
 ```
+
+```{r}
+gene.matrix <- fromList(gene.sets)
+```
+
+
+```{r}
+upset(
+  gene.matrix,
+  intersect = c("Mycorrhization", "Drought", "Interaction")
+) +
+labs(x = "Treatment Combination")
+```
+
 
 
 
