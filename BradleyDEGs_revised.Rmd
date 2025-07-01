@@ -107,6 +107,17 @@ tibble(x=mdsvals$x, y=mdsvals$y, sample=rownames(dge.data.TC$samples)) %>%
   geom_point(size=3) 
 ```
 ```{r}
+mdsvalsPM <- plotMDS(dge.data.PM.interaction, plot = FALSE) # get the MDS values for plotting
+
+tibble(x=mdsvalsPM$x, y=mdsvalsPM$y, sample=rownames(dge.data.PM.interaction$samples)) %>%
+  inner_join(sample.description) %>%
+  ggplot(aes(x=x, y=y, color=trt, shape=sp)) +
+  geom_point(size=3) 
+```
+
+
+
+```{r}
 #sample.description is the original descriptive dataset (describes our samples but doesn't have counts data)
 
 design.TC <- model.matrix(~sp+trt,data=sample.description)
