@@ -116,6 +116,30 @@ tibble(x=mdsvalsPM$x, y=mdsvalsPM$y, sample=rownames(dge.data.PM.interaction$sam
 ```
 
 
+```{r}
+mdsvals <- plotMDS(dge.data.PM, plot = FALSE) #using this one for paper
+
+var1 <- round(mdsvals$var.explained[1] * 100, 1)
+var2 <- round(mdsvals$var.explained[2] * 100, 1)
+
+tibble(
+  x = mdsvals$x,
+  y = mdsvals$y,
+  sample = rownames(dge.data.PM$samples)
+) %>%
+  inner_join(sample.description, by = "sample") %>%
+  ggplot(aes(x = x, y = y, color = trt, shape = sp)) +
+  geom_point(size = 3) +
+  labs(
+    x = paste0("Dimension 1 (", var1, "%)"),
+    y = paste0("Dimension 2 (", var2, "%)"),
+    color = "Drought",
+    shape = "Mycorrhization"
+  ) +
+  theme_classic()
+```
+
+
 
 ```{r}
 #sample.description is the original descriptive dataset (describes our samples but doesn't have counts data)
