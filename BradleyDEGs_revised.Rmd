@@ -552,9 +552,25 @@ upset(
 ) +
 labs(x = "Treatment Combination")
 ```
+let's make a table of data comparing LogFC and FDR in 3 treatment groups...
+```{r}
+library(knitr)
+```
+
+```{r}
+kable(comparison)
 
 
+```
 
+
+```{r}
+write.csv((comparison), "comparison.csv", row.names = FALSE)
+```
+
+```{r}
+
+```
 
 
 
