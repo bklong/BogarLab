@@ -487,7 +487,7 @@ let's try naming the genes on the y axis
 ```{r}
 rownames(logfc_matrix)
 
-new_gene_names <- c("CYP71", "auxin signaling", "sugar metabolism; stress/defense", "CRK", "TIR-NLR-like", "unkown", "sugar metabolism; stress", "specialized metabolism", "unknown", "bHLH", "DCN1", "RdRP", "glycogen + 2ary metabolism; stress", "USP", "MKS1-like", "cell signaling; metabolism; stress", "antibiotic synthesis", "GH16 XET cell wall mod", "pectin cell wall mod", "stress/defense", "cell signaling; post-translational mod", "aa + 2ary metabolism", "sugar transporter", "protein-protein", "cell signaling", "sugar transporter", "BURP", "USP", "XTH")
+new_gene_names <- c("PSME_21469: CYP71", "PSME_27306: auxin signaling", "PSME_31667: sugar metabolism; stress/defense", "PSME_38503: CRK", "PSME_30375: TIR-NLR-like", "PSME_29048: unkown", "PSME_51370: sugar metabolism; stress", "PSME_27294: specialized metabolism", "PSME_23020: unknown", "PSME_37466: bHLH", "PSME_13638: DCN1", "PSME_42174: RdRP", "PSME_19388: glycogen + 2ary metabolism; stress", "PSME_51302: USP", "PSME_06003: MKS1-like", "PSME_12596: cell signaling; metabolism; stress", "PSME_16206: antibiotic synthesis", "PSME_47136: GH16 XET cell wall mod", "PSME_12910: pectin cell wall mod", "PSME_04115: stress/defense", "PSME_04789: cell signaling; post-translational mod", "PSME_31428: aa + 2ary metabolism", "PSME_11752: sugar transporter", "PSME_08506: protein-protein", "PSME_39647: cell signaling", "PSME_48863: sugar transporter", "PSME_40178: BURP", "PSME_38415: USP", "PSME_40947: XTH")
 
 rownames(logfc_matrix) <- new_gene_names
 
