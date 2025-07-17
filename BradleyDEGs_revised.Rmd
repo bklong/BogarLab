@@ -568,10 +568,110 @@ kable(comparison)
 write.csv((comparison), "comparison.csv", row.names = FALSE)
 ```
 
+let's try to analyze interpro outputs:
+
 ```{r}
+# Load necessary library
+library(dplyr)
+library(readr)
+
+# Read InterPro file
+interpro <- read_tsv("DFD/InterPro/PSME_04789_interpro.tsv", 
+                     col_names = FALSE, comment = "#")
+
+# Assign standard column names
+colnames(interpro) <- c(
+  "Protein_Accession", "Sequence_MD5", "Sequence_Length", "Analysis", 
+  "Signature_Accession", "Signature_Description", "Start", "End", 
+  "Score", "Status", "Date", "InterPro_Accession", 
+  "InterPro_Description", "GO_Terms", "Pathways"
+)
+
+# Filter to rows with GO terms and InterPro descriptions
+summary_df <- interpro %>%
+  filter(GO_Terms != "-", InterPro_Description != "-") %>%
+  group_by(Protein_Accession) %>%
+  summarise(
+    InterPro_Accession = paste(unique(InterPro_Accession), collapse = "; "),
+    InterPro_Description = paste(unique(InterPro_Description), collapse = "; "),
+    GO_Terms = paste(unique(GO_Terms), collapse = "; ")
+  )
+
+summary_df
 
 ```
 
 
+```{r}
+# Write to CSV
+write_csv(summary_df, "interpro_GO_summary.csv")
+```
 
+
+```{r}
+library(dplyr)
+library(readr)
+
+# List all interpro files in your folder (adjust pattern or path as needed)
+files <- list.files("DFD/InterPro", pattern = "_interpro.tsv$", full.names = TRUE)
+
+# Initialize an empty list to store each summary dataframe
+summary_list <- list()
+
+# Loop over each file
+for (f in files) {
+  
+  # Read the TSV file
+  interpro <- read_tsv(f, col_names = FALSE, comment = "#")
+  
+  # Assign column names
+  colnames(interpro) <- c(
+    "Protein_Accession", "Sequence_MD5", "Sequence_Length", "Analysis", 
+    "Signature_Accession", "Signature_Description", "Start", "End", 
+    "Score", "Status", "Date", "InterPro_Accession", 
+    "InterPro_Description", "GO_Terms", "Pathways"
+  )
+  
+  # Filter and summarize
+  summary_df <- interpro %>%
+    filter(GO_Terms != "-", InterPro_Description != "-") %>%
+    group_by(Protein_Accession) %>%
+    summarise(
+      InterPro_Accession = paste(unique(InterPro_Accession), collapse = "; "),
+      InterPro_Description = paste(unique(InterPro_Description), collapse = "; "),
+      GO_Terms = paste(unique(GO_Terms), collapse = "; "),
+      .groups = "drop"
+    )
+  
+  # Name the list element by the file name (optional: without path and extension)
+  name <- tools::file_path_sans_ext(basename(f))
+  
+  # Store the summary in the list
+  summary_list[[name]] <- summary_df
+  
+  # Optionally print progress
+  message("Processed: ", name)
+}
+
+# Now summary_list contains one summarized dataframe per file
+
+```
+
+```{r}
+combined_df <- bind_rows(
+  lapply(names(summary_list), function(n) {
+    summary_list[[n]] %>% mutate(source_file = n)
+  })
+)
+
+```
+
+```{r}
+combined_df
+```
+
+```{r}
+write.csv(combined_df, "combined_summary.csv", row.names = FALSE)
+
+```
 
