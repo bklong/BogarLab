@@ -740,6 +740,20 @@ pheatmap(logfc_matrix,
 
 ```
 
+```{r}
+png("goodheatmap.png", width = 1200, height = 1600, res = 150)
+pheatmap(logfc_matrix,
+         cluster_rows = TRUE,
+         cluster_cols = TRUE,
+         scale = "none",
+         color = colorRampPalette(c("blue", "white", "orange"))(100),
+         fontsize_row = 8,
+         angle_col = 0,
+         annotation_row = gene_categories,
+         annotation_colors = annotation_colors)
+dev.off()
+
+```
 
 
 
