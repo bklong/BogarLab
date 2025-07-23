@@ -487,7 +487,7 @@ let's try naming the genes on the y axis
 ```{r}
 rownames(logfc_matrix)
 
-new_gene_names <- c("21469: Cytochrome P450 monooxygenase", "27306: dormancy/auxin-related", "31667: GMC oxidoreductase", "38503: CRK with Gnk2 domain", "30375: R13L4/SHOC-2-like", "29048: DUF829", "51370: GMC oxidoreductase", "27294: FAD/NAD(P)-binding monooxygenase", "23020: unknown", "37466: Myc-like bHLH transcription factor", "13638: DCN1-like with PONY-binding domain", "42174: siRNA processing", "19388: UDP-glycosyltransferase", "51302: UspA", "06003: MKZ1-like", "12596: myo-insitol-1-phosphate synthase", "16206: Fe(2+)/2OG dioxygenase", "47136: XTH", "12910: pectinesterase inhibitor", "04115: CRISP with Gnk2 domain", "04789: sulfotransferase", "31428: TauD/TfdA-like", "11752: MFS sugar transporter", "08506: JINGUBANG-like with WD40-repeat", "39647: CRK with Gnk2 domain", "48863: MFS myo-inositol transporter", "40178: polygalacturonase-associated with BURP domain", "38415: UspA", "40947: GH16")
+new_gene_names <- c("21469: Cytochrome P450", "27306: dormancy/auxin-related", "31667: GMC oxidoreductase", "38503: CRK", "30375: R13L4/SHOC-2-like", "29048: DUF829", "51370: GMC oxidoreductase", "27294: FAD/NAD(P)-binding monooxygenase", "23020: unknown", "37466: Myc-like bHLH", "13638: DCN1-like", "42174: siRNA processing", "19388: UDP-glycosyltransferase", "51302: UspA", "06003: MKZ1-like", "12596: myo-insitol-1-phosphate synthase", "16206: Fe(2+)/2OG dioxygenase", "47136: XTH", "12910: pectinesterase inhibitor", "04115: CRISP", "04789: sulfotransferase", "31428: TauD/TfdA-like", "11752: MFS transporter", "08506: JINGUBANG-like", "39647: CRK", "48863: MFS transporter", "40178: BURP domain", "38415: UspA", "40947: GH16")
 
 rownames(logfc_matrix) <- new_gene_names
 
@@ -691,7 +691,7 @@ pheatmap(logfc_matrix,
 #this is the list of row names in order
 #now need to make list of each category name in order 
 
-#"21469: Cytochrome P450 monooxygenase", "27306: dormancy/auxin-related", "31667: GMC oxidoreductase", "38503: CRK with Gnk2 domain", "30375: R13L4/SHOC-2-like", "29048: DUF829", "51370: GMC oxidoreductase", "27294: FAD/NAD(P)-binding monooxygenase", "23020: unknown", "37466: Myc-like bHLH transcription factor", "13638: DCN1-like with PONY-binding domain", "42174: siRNA processing", "19388: UDP-glycosyltransferase", "51302: UspA", "06003: MKZ1-like", "12596: myo-insitol-1-phosphate synthase", "16206: Fe(2+)/2OG dioxygenase", "47136: XTH", "12910: pectinesterase inhibitor", "04115: CRISP with Gnk2 domain", "04789: sulfotransferase", "31428: TauD/TfdA-like", "11752: MFS sugar transporter", "08506: JINGUBANG-like with WD40-repeat", "39647: CRK with Gnk2 domain", "48863: MFS myo-inositol transporter", "40178: polygalacturonase-associated with BURP domain", "38415: UspA", "40947: GH16"
+#"21469: Cytochrome P450 monooxygenase", "27306: dormancy/auxin-related", "31667: GMC oxidoreductase", "38503: CRK with Gnk2 domain", "30375: R13L4/SHOC-2-like", "29048: DUF829", "51370: GMC oxidoreductase", "27294: FAD/NAD(P)-binding monooxygenase", "23020: unknown", "37466: Myc-like bHLH transcription factor", "13638: DCN1-like with PONY-binding domain", "42174: siRNA processing", "19388: UDP-glycosyltransferase", "51302: UspA", "06003: MKZ1-like", "12596: myo-insitol-1-phosphate synthase", "16206: Fe(2+)/2OG dioxygenase", "47136: XTH", "12910: pectinesterase inhibitor", "04115: CRISP with Gnk2 domain", "04789: sulfotransferase", "31428: TauD/TfdA-like", "11752: MFS sugar transporter", "08506: JINGUBANG-like with WD40-repeat", "39647: CRK with Gnk2 domain", "48863: MFS myo-inositol transporter", "40178: BURP domain", "38415: UspA", "40947: GH16"
 
 ```
 
@@ -703,12 +703,15 @@ gene_categories <- data.frame(
 )
 rownames(gene_categories) <- rownames(logfc_matrix)  # must match order in matrix
 
+colnames(gene_categories) <- " "  # remove the label entirely
+
+
 ```
 
 
 ```{r}
 annotation_colors <- list(
-  Category = c(
+  " " = c(
     "metabolism" = "#1f77b4",      # blue
     "stress response" = "#ff7f0e",      # orange
     "sugar transport" = "#2ca02c",         # green
