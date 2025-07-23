@@ -699,7 +699,7 @@ pheatmap(logfc_matrix,
 start with making df of annotation categories:
 ```{r}
 gene_categories <- data.frame(
-  Category = c("metabolism", "stress response", "sugar transport", "cell wall mod", "gene regulation", "cell signaling", "unknown", "defense", "development", "specialized metabolism")
+  Category = c("metabolism", "development", "metabolism", "cell signaling", "defense", "unknown", "metabolism", "metabolism", "unknown", "gene regulation", "development", "gene regulation", "metabolism", "stress response", "development", "cell signaling", "metabolism", "cell wall mod", "cell wall mod", "defense", "metabolism", "metabolism", "sugar transport", "cell signaling", "cell signaling", "sugar transport", "cell wall mod", "stress response", "cell wall mod")
 )
 rownames(gene_categories) <- rownames(logfc_matrix)  # must match order in matrix
 
@@ -717,7 +717,7 @@ annotation_colors <- list(
     "gene regulation" = "#9467bd",
     "cell signaling" = "#8c564b", 
     "defense" = "#e377c2", 
-    "development" = "#17becf", 
+    "development" = "#17becf" 
   )
 )
 
