@@ -741,7 +741,7 @@ pheatmap(logfc_matrix,
 ```
 
 ```{r}
-png("goodheatmap.png", width = 1200, height = 1600, res = 150)
+png("testgoodheatmap.png", width = 1200, height = 1000, res = 300)
 pheatmap(logfc_matrix,
          cluster_rows = TRUE,
          cluster_cols = TRUE,
