@@ -780,5 +780,13 @@ dev.off()
 ```
 
 
+10/1/25: talked with Laura about DFD...we want to explore more analysis
+
+analysis to do list:
+revisit FDR value decisions (some were 0.01, some 0.05, why?)
+Annotate DEGs of individual treatments (similar to what I did with interaction)
+explore different ordination
+attempt coexpression
+
 
 
