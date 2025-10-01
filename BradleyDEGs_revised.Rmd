@@ -202,9 +202,9 @@ top10.interaction.PM
 summary:
 
 ```{r}
-summary(decideTestsDGE(trt.lrt.TC,p.value=0.01)) #This uses the FDR.  0.05 would be OK also.
-summary(decideTestsDGE(trt.lrt.PM,p.value=0.01)) 
-summary(decideTestsDGE(sp.lrt.PM,p.value=0.01))
+summary(decideTestsDGE(trt.lrt.TC,p.value=0.05)) #This uses the FDR.  0.05 would be OK also.
+summary(decideTestsDGE(trt.lrt.PM,p.value=0.05)) 
+summary(decideTestsDGE(sp.lrt.PM,p.value=0.05))
 summary(decideTestsDGE(interaction.lrt.PM,p.value=0.05)) 
 ```
 To summarize above analysis: No significant DEGs found between treatments for the fungal counts (at both 0.01 and 0.05 FDR). Significant DEGs were found (FDR 0.01) between treatments and species for tree counts. The interaction analysis shows no significant DEGs at FDR 0.01 but that increases to 29 significant DEGs at FDR 0.05. These 29 interaction genes are of high interest to our study. The next step is to try and look at the function of these, as well as create visualizations of the data.
@@ -783,10 +783,38 @@ dev.off()
 10/1/25: talked with Laura about DFD...we want to explore more analysis
 
 analysis to do list:
-revisit FDR value decisions (some were 0.01, some 0.05, why?)
-Annotate DEGs of individual treatments (similar to what I did with interaction)
-explore different ordination
-attempt coexpression
+- revisit FDR value decisions (some were 0.01, some 0.05, why?)
+- Annotate DEGs of individual treatments (similar to what I did with
+  interaction)
+- attempt coexpression
+- explore different ordination
+
+Revisiting FDR value decisions and annotating sp and trt DEGs:
+
+```{r}
+#(top 29 genes for both trt and sp will be sig FDR = 0.05)
+#filter DEGs for only the top 29 in each individual treatment (sp and trt)
+
+top29.PM.sp <- rownames(topTags(sp.lrt.PM, n=29)$table)
+top29.PM.sp.named <- PM.counts.normal.log.named[top29.PM.sp, ]
+
+top29.PM.trt <- rownames(topTags(trt.lrt.PM, n = 29)$table)
+top29.PM.trt.named <- PM.counts.normal.log.named[top29.PM.trt, ]
+
+```
+
+```{r}
+#Extract genes with a FDR < 0.05
+PM.29.trt.DEGs <- topTags(interaction.lrt.PM,n = 29, p.value = 0.05)$table
+PM.29.sp.DEGs <- topTags(sp.lrt.PM, n = 29, p.value = 0.05)$table
+
+#save to a file
+write.csv(PM.29.trt.DEGs,"PM.29.trt.DEGs.csv")
+write.csv(PM.29.sp.DEGs, "PM.29.sp.DEGs.csv")
+```
 
 
+Coexpression:
+
+Ordination:
 
