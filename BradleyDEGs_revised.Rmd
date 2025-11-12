@@ -813,6 +813,11 @@ write.csv(PM.29.trt.DEGs,"PM.29.trt.DEGs.csv")
 write.csv(PM.29.sp.DEGs, "PM.29.sp.DEGs.csv")
 ```
 
+Now that I have a dataframe with the top 29 treatment and species DEGs, the next step is to annotate them. I will use ChatGPT to explore ways I can do this with code.
+
+Previously I manually entered 29 interaction genes into interpro website. That workflow is in "PM.interaction.DEGs.rmd"
+
+I will make a new doc to annotate the 29 trt and sp genes called "trt.sp.annotation.rmd"
 
 Coexpression:
 
