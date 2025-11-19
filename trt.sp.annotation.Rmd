@@ -1,0 +1,105 @@
+---
+title: "trt.sp.annotation"
+author: "Britt"
+date: "2025-11-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Annotating the top 29 Treatment (trt), Species (sp), and interaction DEGs
+
+```{r}
+int.DEGs <- read.csv("PM.interaction.DEGs.csv")
+int.DEGs
+
+sp.DEGs <- read.csv("PM.interaction.DEGs.csv") 
+sp.DEGs
+
+trt.DEGs <- read.csv("PM.interaction.DEGs.csv")
+trt.DEGs
+```
+
+
+trying the CDS file instead...
+
+```{r}
+library(Biostrings)
+
+# Read the CDS FASTA file
+cds_sequences <- readDNAStringSet("Psme.1_0.cds.fa.gz")
+
+# Print the sequences to inspect
+cds_sequences
+```
+
+
+let's try to extract sequence from specific genes:
+
+```{r}
+DEG1 <- cds_sequences["PSME_21469"]
+print(DEG1)
+```
+
+
+let's attempt a for loop to automate this:
+
+```{r}
+
+extracted_sequences <- character(nrow(DEGs))
+
+# Loop over each row in the DEGs data frame to extract sequences
+for (i in 1:nrow(DEGs)) {
+  gene_name <- DEGs[i, 1]  # Extract the gene name from the first column
+  
+  # Check if the gene name exists in the cds_sequences
+  if (gene_name %in% names(cds_sequences)) {
+    DEG_sequence <- cds_sequences[gene_name]  # Extract sequence
+    DEG_sequence <- as.character(DEG_sequence)  # Convert to character string
+  } else {
+    DEG_sequence <- NA  # Assign NA if gene is not found
+  }
+  
+  # Store the result in the vector
+  extracted_sequences[i] <- DEG_sequence
+}
+
+# Add the extracted sequences to the DEGs data frame
+DEGs$sequence <- extracted_sequences
+
+# Save the updated DEGs data frame with sequences to a CSV file
+write.csv(DEGs, "DEGs_with_sequences.csv", row.names = FALSE)
+
+cat("Sequences have been extracted and saved to 'DEGs_with_sequences.csv'.")
+
+```
+
+
+That seems to have worked, although I need to double check accuracy later.
+
+Let's remove some columns from the dataframe and then resave the data as a csv.
+
+```{r}
+library(dplyr)
+
+# Remove columns by position
+DEGs <- DEGs %>% select(-c(3, 4, 5))
+DEGs
+```
+
+
+now I have a csv with the 29 DEGs, their sequence, their FDRs and log fold change:
+
+```{r}
+write.csv(DEGs, "interaction.DEGs.csv", row.names = FALSE)
+```
+
+time to interpro...
+
+
+
+
+
+
