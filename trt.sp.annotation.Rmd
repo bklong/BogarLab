@@ -15,10 +15,10 @@ Annotating the top 29 Treatment (trt), Species (sp), and interaction DEGs
 int.DEGs <- read.csv("PM.interaction.DEGs.csv")
 int.DEGs
 
-sp.DEGs <- read.csv("PM.interaction.DEGs.csv") 
+sp.DEGs <- read.csv("PM.29.sp.DEGs.csv") 
 sp.DEGs
 
-trt.DEGs <- read.csv("PM.interaction.DEGs.csv")
+trt.DEGs <- read.csv("PM.29.trt.DEGs.csv")
 trt.DEGs
 ```
 
@@ -96,6 +96,35 @@ write.csv(sp.DEGs, "sp.DEGs.seq.csv", row.names = FALSE)
 
 cat("Sequences have been extracted and saved to 'sp.DEGs.seq.csv'.")
 ```
+and now for trt:
+
+```{r}
+extracted.trt.sequences <- character(nrow(trt.DEGs))
+
+# Loop over each row in the DEGs data frame to extract sequences
+for (i in 1:nrow(trt.DEGs)) {
+  gene_name <- trt.DEGs[i, 1]  # Extract the gene name from the first column
+  
+  # Check if the gene name exists in the cds_sequences
+  if (gene_name %in% names(cds_sequences)) {
+    DEG_sequence <- cds_sequences[gene_name]  # Extract sequence
+    DEG_sequence <- as.character(DEG_sequence)  # Convert to character string
+  } else {
+    DEG_sequence <- NA  # Assign NA if gene is not found
+  }
+  
+  # Store the result in the vector
+  extracted.trt.sequences[i] <- DEG_sequence
+}
+
+# Add the extracted sequences to the DEGs data frame
+trt.DEGs$sequence <- extracted.trt.sequences
+
+# Save the updated DEGs data frame with sequences to a CSV file
+write.csv(trt.DEGs, "trt.DEGs.seq.csv", row.names = FALSE)
+
+cat("Sequences have been extracted and saved to 'trt.DEGs.seq.csv'.")
+```
 
 
 Let's remove some columns from the dataframe and then resave the data as a csv.
@@ -104,9 +133,20 @@ Let's remove some columns from the dataframe and then resave the data as a csv.
 library(dplyr)
 
 # Remove columns by position
-DEGs <- DEGs %>% select(-c(3, 4, 5))
-DEGs
+int.DEGs <- int.DEGs %>% select(-c(3, 4, 5))
+int.DEGs
 ```
+
+```{r}
+sp.DEGs <- sp.DEGs %>% select(-c(3,4,5))
+sp.DEGs
+```
+
+```{r}
+trt.DEGs <- trt.DEGs %>% select(-c(3,4,5))
+trt.DEGs
+```
+
 
 
 now I have a csv with the 29 DEGs, their sequence, their FDRs and log fold change:
