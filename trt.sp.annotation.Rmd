@@ -23,7 +23,7 @@ trt.DEGs
 ```
 
 
-trying the CDS file instead...
+using CDS file to get PSME sequences:
 
 ```{r}
 library(Biostrings)
@@ -35,24 +35,15 @@ cds_sequences <- readDNAStringSet("Psme.1_0.cds.fa.gz")
 cds_sequences
 ```
 
-
-let's try to extract sequence from specific genes:
-
-```{r}
-DEG1 <- cds_sequences["PSME_21469"]
-print(DEG1)
-```
-
-
-let's attempt a for loop to automate this:
+let's attempt a for loop to automate extracting sequence from specific genes (interaction genes first):
 
 ```{r}
 
-extracted_sequences <- character(nrow(DEGs))
+extracted.int.sequences <- character(nrow(int.DEGs))
 
 # Loop over each row in the DEGs data frame to extract sequences
-for (i in 1:nrow(DEGs)) {
-  gene_name <- DEGs[i, 1]  # Extract the gene name from the first column
+for (i in 1:nrow(int.DEGs)) {
+  gene_name <- int.DEGs[i, 1]  # Extract the gene name from the first column
   
   # Check if the gene name exists in the cds_sequences
   if (gene_name %in% names(cds_sequences)) {
@@ -63,21 +54,49 @@ for (i in 1:nrow(DEGs)) {
   }
   
   # Store the result in the vector
-  extracted_sequences[i] <- DEG_sequence
+  extracted.int.sequences[i] <- DEG_sequence
 }
 
 # Add the extracted sequences to the DEGs data frame
-DEGs$sequence <- extracted_sequences
+int.DEGs$sequence <- extracted.int.sequences
 
 # Save the updated DEGs data frame with sequences to a CSV file
-write.csv(DEGs, "DEGs_with_sequences.csv", row.names = FALSE)
+write.csv(int.DEGs, "int.DEGs.seq.csv", row.names = FALSE)
 
-cat("Sequences have been extracted and saved to 'DEGs_with_sequences.csv'.")
+cat("Sequences have been extracted and saved to 'int.DEGs.seq.csv'.")
 
 ```
+now for trt and sp:
 
+```{r}
 
-That seems to have worked, although I need to double check accuracy later.
+extracted.sp.sequences <- character(nrow(sp.DEGs))
+
+# Loop over each row in the DEGs data frame to extract sequences
+for (i in 1:nrow(sp.DEGs)) {
+  gene_name <- sp.DEGs[i, 1]  # Extract the gene name from the first column
+  
+  # Check if the gene name exists in the cds_sequences
+  if (gene_name %in% names(cds_sequences)) {
+    DEG_sequence <- cds_sequences[gene_name]  # Extract sequence
+    DEG_sequence <- as.character(DEG_sequence)  # Convert to character string
+  } else {
+    DEG_sequence <- NA  # Assign NA if gene is not found
+  }
+  
+  # Store the result in the vector
+  extracted.sp.sequences[i] <- DEG_sequence
+}
+
+# Add the extracted sequences to the DEGs data frame
+sp.DEGs$sequence <- extracted.sp.sequences
+
+# Save the updated DEGs data frame with sequences to a CSV file
+write.csv(sp.DEGs, "sp.DEGs.seq.csv", row.names = FALSE)
+
+cat("Sequences have been extracted and saved to 'sp.DEGs.seq.csv'.")
+```
+
 
 Let's remove some columns from the dataframe and then resave the data as a csv.
 
