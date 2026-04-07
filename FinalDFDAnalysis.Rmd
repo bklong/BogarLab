@@ -1,0 +1,33 @@
+---
+title: "Final DFD Analysis"
+author: "Britt"
+date: "2026-04-07"
+output: html_document
+---
+
+
+
+
+
+
+```{r}
+# Ensure levels are set correctly
+sample.description$Myco <- relevel(factor(sample.description$Myco), ref = "Non-Myco")
+sample.description$Trt <- relevel(factor(sample.description$Trt), ref = "Control")
+
+design <- model.matrix(~ Myco * Trt, data = sample.description)
+fit <- glmQLFit(y, design)
+```
+
+
+Effect 1: The Mycorrhiza Effect (Baseline)
+glmQLFTest(fit, coef = 2)
+Tests: Mycorrhiza vs. Non-Myco in the Control treatment.
+
+Effect 2: The Treatment Effect (Baseline)
+glmQLFTest(fit, coef = 3)
+Tests: Treatment vs. Control in the Non-Myco plants.
+
+Effect 3: The Interaction (Synergy)
+glmQLFTest(fit, coef = 4)
+Tests: Is the treatment response different in Myco plants vs Non-Myco plants?
