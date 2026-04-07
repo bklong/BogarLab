@@ -5,29 +5,124 @@ date: "2026-04-07"
 output: html_document
 ---
 
+```{r}
+PM.counts <- read.table("Psme_RNASeq_July2024_Psme.1_0_counts.txt", header = TRUE) 
+PM.counts
+```
+
+```{r}
+PM.counts <- PM.counts[rowSums(PM.counts[,-1] > 10) >= 3,]
+PM.counts
+```
+
+```{r}
+library(tibble)
+PM.counts.noid <- as_tibble(PM.counts)
+PM.counts.noid
+```
+
+```{r}
+library(tidyverse)
+sample.description <- tibble(sample=colnames(TC.counts.noid))
+sample.description <- sample.description %>%
+  mutate(
+    myc = c("NM", "NM", "NM", "NM", "M", "NM", "M", "M", "M", "NM", "M", "NM", "NM", "M", "NM", "M", "NM", "NM", "NM", "M", "NA"),  
+    trt = c("C", "C", "T", "C", "C", "T", "T", "T", "C", "C", "C", "C", "T", "T", "C", "C", "C", "T", "T", "T", "NA"),  
+    group = paste(myc, trt, sep = "_")
+  )
+sample.description <- sample.description %>%
+  slice(1:(n() - 1))
+sample.description <- sample.description %>%
+  mutate(myc=factor(myc, levels = c("NM","M")), 
+         trt=factor(trt,levels = c("C","T"))) # setting the levels in this way makes "C and NM" the reference
+sample.description
+```
 
 
+```{r}
+library(edgeR)
+
+counts.matrix.PM <- PM.counts %>% as.matrix()
+
+#remove unassigned row
+counts.matrix.PM <- counts.matrix.PM[, -21]
+
+counts.matrix.PM
+```
+
+```{r}
+dge.data <- DGEList(counts=counts.matrix.PM, 
+                    group=sample.description$group)
+dim(dge.data) 
+dge.data <- calcNormFactors(dge.data, method = "TMM")
+dge.data$samples # look at the normalization factors
+```
+
+(make ordination here)
+
+```{r}
+# Ensure levels are set correctly
+sample.description$myc <- relevel(factor(sample.description$myc), ref = "NM")
+sample.description$trt <- relevel(factor(sample.description$trt), ref = "C")
+```
+
+
+```{r}
+#sample.description is the original descriptive dataset (describes our samples but doesn't have counts data)
+
+interaction.design <- model.matrix(~myc*trt,data = sample.description)
+rownames(interaction.design) <- sample.description$sample
+interaction.design
+```
+```{r}
+# Modern, clean workflow for the Interaction model
+dge.data <- estimateDisp(dge.data, interaction.design)
+
+# View the dispersion estimates
+summary(dge.data$tagwise.dispersion)
+```
 
 
 
 ```{r}
-# Ensure levels are set correctly
-sample.description$Myco <- relevel(factor(sample.description$Myco), ref = "Non-Myco")
-sample.description$Trt <- relevel(factor(sample.description$Trt), ref = "Control")
+# 1. Fit using the QL model instead of glmFit
+fit <- glmQLFit(dge.data, interaction.design)
 
-design <- model.matrix(~ Myco * Trt, data = sample.description)
-fit <- glmQLFit(y, design)
+# 2. Test using the QL F-test instead of glmLRT
+# Treatment Effect
+trt.qlf <- glmQLFTest(fit, coef = "trtT")
+
+# Mycorrhization Effect (spM)
+myc.qlf <- glmQLFTest(fit, coef = "mycM")
+
+# Interaction Effect (The Synergy)
+interaction.qlf <- glmQLFTest(fit, coef = "mycM:trtT")
 ```
 
 
-Effect 1: The Mycorrhiza Effect (Baseline)
-glmQLFTest(fit, coef = 2)
-Tests: Mycorrhiza vs. Non-Myco in the Control treatment.
+```{r}
+summary(decideTests(myc.qlf, p.value=0.06))
+summary(decideTests(trt.qlf, p.value=0.06))
+summary(decideTests(interaction.qlf, p.value=0.06))
+```
 
-Effect 2: The Treatment Effect (Baseline)
-glmQLFTest(fit, coef = 3)
-Tests: Treatment vs. Control in the Non-Myco plants.
+```{r}
+top10.trt <- topTags(trt.qlf)
+top10.myc <- topTags(myc.qlf) 
+top10.interaction <- topTags(interaction.qlf)
 
-Effect 3: The Interaction (Synergy)
-glmQLFTest(fit, coef = 4)
-Tests: Is the treatment response different in Myco plants vs Non-Myco plants?
+top10.trt
+top10.myc
+top10.interaction
+```
+
+```{r}
+# Visualizing the dispersion/BCV
+plotBCV(dge.data)
+```
+
+```{r}
+# This will show you if you have an outlier sample
+plotMDS(dge.data, col=as.numeric(sample.description$myc))
+```
+
