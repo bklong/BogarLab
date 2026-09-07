@@ -163,18 +163,74 @@ Notes: PCA does not change with new analysis. Still not looking great.
 let's start by getting ALL DEGs from the three treatments
 
 ```{r}
-all.myc.DEGs <- topTags(myc.qlf, n = Inf)
-all.trt.DEGs <- topTags(trt.qlf, n = Inf)
-all.int.DEGs <- topTags(interaction.qlf, n = Inf)
+all.myc.degs <- as.data.frame(topTags(myc.qlf, n = Inf))
+all.trt.degs <- as.data.frame(topTags(trt.qlf, n = Inf))
+all.int.degs <- as.data.frame(topTags(interaction.qlf, n = Inf))
 ```
 
 ```{r}
-print(all.myc.DEGs)
-print(all.trt.DEGs)
-print(all.int.DEGs)
+print(all.myc.degs)
+print(all.trt.degs)
+print(all.int.degs)
 ```
 
 
+```{r}
+library(edgeR)
+library(pheatmap)
+```
+
+```{r}
+# Filter for significant DEGs (FDR < 0.05) and select top 25 by absolute logFC
+sig.trt.degs <- subset(all.trt.degs, FDR < 0.01)
+top25.trt.degs <- sig.trt.degs[order(abs(sig.trt.degs$logFC),decreasing = TRUE), ][1:25, ]
+
+sig.myc.degs <- subset(all.myc.degs, FDR < 0.06)
+top25.myc.degs <- sig.myc.degs[order(abs(sig.myc.degs$logFC),decreasing = TRUE), ][1:25, ]
+
+top25.int.degs <- all.int.degs[order(abs(all.int.degs$logFC),decreasing = TRUE), ][1:25, ]
+```
+
+```{r}
+top25.int.degs
+top25.myc.degs
+top25.trt.degs
+```
+
+
+
+
+# -----------------------------------------------------------------------------
+# 2. Expression Matrix Preparation & Sample Metadata
+# -----------------------------------------------------------------------------
+# Get logCPM values for all samples
+logcpm <- cpm(dge_object, log = TRUE)
+
+# Subset logCPM matrix to the top 50 DEG gene names
+top50_gene_names <- rownames(top50_degs)
+heatmap_matrix <- logcpm[top50_gene_names, ]
+
+# Extract sample group annotations directly from DGEList object
+annotation_col <- data.frame(
+  Group = dge_object$samples$group,
+  row.names = colnames(heatmap_matrix)
+)
+
+# -----------------------------------------------------------------------------
+# 3. Generate Heatmap
+# -----------------------------------------------------------------------------
+pheatmap(
+  heatmap_matrix,
+  scale = "row",                      # Standardize row expression (Z-score)
+  annotation_col = annotation_col,   # Display group color bars on columns
+  show_rownames = TRUE,              # Show top 50 gene IDs
+  show_colnames = TRUE,              # Show sample IDs
+  clustering_distance_rows = "euclidean",
+  clustering_distance_cols = "euclidean",
+  clustering_method = "complete",
+  main = "Top 50 DEGs by Absolute logFC (FDR < 0.05)"
+)
+```
 
 
 
