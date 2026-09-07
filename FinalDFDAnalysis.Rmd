@@ -102,8 +102,8 @@ interaction.qlf <- glmQLFTest(fit, coef = "mycM:trtT")
 
 ```{r}
 summary(decideTests(myc.qlf, p.value=0.06))
-summary(decideTests(trt.qlf, p.value=0.06))
-summary(decideTests(interaction.qlf, p.value=0.06))
+summary(decideTests(trt.qlf, p.value=0.01))
+summary(decideTests(interaction.qlf, p.value=0.5))
 ```
 
 ```{r}
@@ -115,6 +115,14 @@ top10.trt
 top10.myc
 top10.interaction
 ```
+Notes:
+
+interaction: no sig genes, top genes at 0.5 FDR and higher (not 0.25 threshold Laura and I discussed)
+myc: sig genes at above 0.05 FDR, set at 0.06 produces sig DEGs
+trt: sig genes at 0.01 FDR
+
+
+
 
 ```{r}
 # Visualizing the dispersion/BCV
