@@ -122,8 +122,6 @@ myc: sig genes at above 0.05 FDR, set at 0.06 produces sig DEGs
 trt: sig genes at 0.01 FDR
 
 
-
-
 ```{r}
 # Visualizing the dispersion/BCV
 plotBCV(dge.data)
@@ -133,4 +131,51 @@ plotBCV(dge.data)
 # This will show you if you have an outlier sample
 plotMDS(dge.data, col=as.numeric(sample.description$myc))
 ```
+
+```{r}
+mdsvals <- plotMDS(dge.data, plot = FALSE) #using this one for paper
+
+var1 <- round(mdsvals$var.explained[1] * 100, 1)
+var2 <- round(mdsvals$var.explained[2] * 100, 1)
+
+tibble(
+  x = mdsvals$x,
+  y = mdsvals$y,
+  sample = rownames(dge.data$samples)
+) %>%
+  inner_join(sample.description, by = "sample") %>%
+  ggplot(aes(x = x, y = y, color = trt, shape = myc)) +
+  geom_point(size = 3) +
+  labs(
+    x = paste0("Dimension 1 (", var1, "%)"),
+    y = paste0("Dimension 2 (", var2, "%)"),
+    color = "Drought",
+    shape = "Mycorrhization"
+  ) +
+  theme_classic()
+```
+
+Notes: PCA does not change with new analysis. Still not looking great.
+
+------------------------------------------------
+9/7/26 let's make heatmaps
+
+let's start by getting ALL DEGs from the three treatments
+
+```{r}
+all.myc.DEGs <- topTags(myc.qlf, n = Inf)
+all.trt.DEGs <- topTags(trt.qlf, n = Inf)
+all.int.DEGs <- topTags(interaction.qlf, n = Inf)
+```
+
+```{r}
+print(all.myc.DEGs)
+print(all.trt.DEGs)
+print(all.int.DEGs)
+```
+
+
+
+
+
 
