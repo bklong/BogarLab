@@ -197,40 +197,51 @@ top25.myc.degs
 top25.trt.degs
 ```
 
+```{r}
+# 1. Extract the gene names (row names) from each of the three top 25 objects
+genes_trt <- rownames(top25.trt.degs)
+genes_myc <- rownames(top25.myc.degs)
+genes_int <- rownames(top25.int.degs)
+```
 
 
+```{r}
+# 2. Combine them into a single vector and remove duplicates using unique()
+master_gene_list <- unique(c(genes_trt, genes_myc, genes_int))
+```
 
-# -----------------------------------------------------------------------------
-# 2. Expression Matrix Preparation & Sample Metadata
-# -----------------------------------------------------------------------------
-# Get logCPM values for all samples
-logcpm <- cpm(dge_object, log = TRUE)
 
-# Subset logCPM matrix to the top 50 DEG gene names
-top50_gene_names <- rownames(top50_degs)
-heatmap_matrix <- logcpm[top50_gene_names, ]
+```{r}
+logcpm <- cpm(dge.data, log = TRUE)
+# 3. Use the single vector to subset your logCPM expression matrix for pheatmap
+combined_heatmap_matrix <- logcpm[master_gene_list, ]
+```
 
-# Extract sample group annotations directly from DGEList object
+```{r}
+# Option B: If sample description is already inside edgeR's dge_object
 annotation_col <- data.frame(
-  Group = dge_object$samples$group,
-  row.names = colnames(heatmap_matrix)
-)
-
-# -----------------------------------------------------------------------------
-# 3. Generate Heatmap
-# -----------------------------------------------------------------------------
-pheatmap(
-  heatmap_matrix,
-  scale = "row",                      # Standardize row expression (Z-score)
-  annotation_col = annotation_col,   # Display group color bars on columns
-  show_rownames = TRUE,              # Show top 50 gene IDs
-  show_colnames = TRUE,              # Show sample IDs
-  clustering_distance_rows = "euclidean",
-  clustering_distance_cols = "euclidean",
-  clustering_method = "complete",
-  main = "Top 50 DEGs by Absolute logFC (FDR < 0.05)"
+  Group = dge.data$samples$group,
+  row.names = colnames(logcpm) # Must match the matrix column names
 )
 ```
+
+
+
+```{r}
+
+# 4. Draw the combined heatmap
+pheatmap(
+  combined_heatmap_matrix,
+  scale = "row",
+  annotation_col = annotation_col,
+  show_rownames = TRUE,
+  main = "Combined Top DEGs Across All Comparisons"
+)
+```
+
+
+
+
 
 
 
