@@ -309,6 +309,41 @@ for (grp in group_list) {
 ```
 
 
+```{r}
+library(edgeR)
+library(pheatmap)
+
+# 1. Extract interaction DEGs (gene names)
+interaction_genes <- rownames(top25.int.degs)
+
+# 2. Compute logCPM and subset matrix for interaction genes only
+logcpm <- cpm(dge.data, log = TRUE)
+int_heatmap_matrix <- logcpm[interaction_genes, ]
+
+# 3. Filter out zero-variance rows (prevents scaling errors)
+row_variances <- apply(int_heatmap_matrix, 1, var, na.rm = TRUE)
+int_heatmap_matrix_clean <- int_heatmap_matrix[row_variances > 0 & !is.na(row_variances), ]
+
+# 4. Build group annotations
+annotation_col <- data.frame(
+  Group = dge.data$samples$group,
+  row.names = colnames(logcpm)
+)
+
+# 5. Render the interaction heatmap
+pheatmap(
+  int_heatmap_matrix_clean,
+  scale = "row",                    # Standardize row expression (Z-score)
+  annotation_col = annotation_col,  # Show sample groups at top
+  border_color = NA,               # Clean tile display
+  show_rownames = FALSE,           # Hide dense row labels
+  show_colnames = TRUE,            # Show sample names
+  clustering_distance_rows = "euclidean",
+  clustering_distance_cols = "euclidean",
+  clustering_method = "complete",
+  main = "Top DEGs - Interaction Effect"
+)
+```
 
 
 
