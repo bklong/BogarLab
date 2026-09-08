@@ -239,7 +239,74 @@ pheatmap(
 )
 ```
 
+```{r}
+pheatmap(
+  combined_heatmap_matrix,
+  scale = "row",                     # Essential: Centers/scales row expression (Z-score)
+  annotation_col = annotation_col,  # Keeps sample group annotations
+  show_rownames = FALSE,             # Hides compressed gene IDs (or set TRUE and export as taller PDF)
+  show_colnames = TRUE,              # Keeps sample IDs
+  border_color = NA,                 # Removes grey cell borders for a cleaner look
+  fontsize_col = 10,                 # Adjusts column label font size
+  main = "Combined Top DEGs Across All Comparisons"
+)
+```
 
+
+```{r}
+library(edgeR)
+library(pheatmap)
+
+# 1. Extract row names from each DEG object
+genes_trt <- rownames(top25.trt.degs)
+genes_myc <- rownames(top25.myc.degs)
+genes_int <- rownames(top25.int.degs)
+
+# 2. Combine into a single vector and remove duplicate gene IDs
+master_gene_list <- unique(c(genes_trt, genes_myc, genes_int))
+
+# 3. Compute logCPM matrix and subset to master DEG list
+logcpm <- cpm(dge.data, log = TRUE)
+combined_heatmap_matrix <- logcpm[master_gene_list, ]
+
+# 4. Build column annotation matching matrix column names
+annotation_col <- data.frame(
+  Group = dge.data$samples$group,
+  row.names = colnames(logcpm)
+)
+
+# -----------------------------------------------------------------------------
+# 5. Display Separate Heatmaps Directly in RStudio Plot Window
+# -----------------------------------------------------------------------------
+
+group_list <- unique(annotation_col$Group)
+
+for (grp in group_list) {
+  
+  # Identify sample columns belonging to current group
+  group_samples <- rownames(annotation_col[annotation_col$Group == grp, , drop = FALSE])
+  
+  # Subset matrix for current group samples
+  group_matrix <- combined_heatmap_matrix[, group_samples, drop = FALSE]
+  
+  # Filter out zero-variance rows
+  row_variances <- apply(group_matrix, 1, var, na.rm = TRUE)
+  group_matrix_clean <- group_matrix[row_variances > 0 & !is.na(row_variances), , drop = FALSE]
+  
+  if (nrow(group_matrix_clean) > 1) {
+    # REMOVED filename argument to force on-screen rendering
+    pheatmap(
+      group_matrix_clean,
+      scale = "row",
+      border_color = NA,
+      show_rownames = FALSE,
+      show_colnames = TRUE,
+      cluster_cols = TRUE,
+      main = paste("Top DEGs - Group:", grp)
+    )
+  }
+}
+```
 
 
 
