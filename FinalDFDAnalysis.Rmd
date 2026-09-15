@@ -345,6 +345,47 @@ pheatmap(
 )
 ```
 
+----------------------------------------------------
+new plan - let's make 4 heatmaps...
+
+1. heatmap of drought genes @ FDR 0.01
+2. heatmap of all drought genes with highest mag change
+3. heatmap of myc genes @ FDR 0.1
+4. heatmap of all myc genes with highest mag change
+
+so, we need two datasets...one with only drought genes and one with only myc genes
+
+I already made them!
+
+```{r}
+all.myc.degs
+all.trt.degs
+```
+ Now I can filter for certain FDR and logFC values...
+ FDR first
+ 
+```{r}
+sig.trt.degs <- topTags(trt.qlf, n = Inf, p.value = 0.01)$table
+sig.myc.degs <- topTags(myc.qlf, n = Inf, p.value = 0.1)$table
+
+sig.trt.degs
+sig.myc.degs
+```
+ and now logFC...
+ 
+```{r}
+library(dplyr)
+
+# Filter strictly for |log2FC| >= 1
+all.myc.degs.filtered <- all.myc.degs %>%
+  filter(abs(logFC) >= 1)
+
+all.trt.degs.filtered <- all.trt.degs %>%
+  filter(abs(log2FoldChange) >= 1)
+```
+ 
+
+
 
 
 
