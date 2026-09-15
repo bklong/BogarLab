@@ -377,14 +377,30 @@ sig.myc.degs
 library(dplyr)
 
 # Filter strictly for |log2FC| >= 1
-all.myc.degs.filtered <- all.myc.degs %>%
+logFC.myc.degs <- all.myc.degs %>%
   filter(abs(logFC) >= 1)
 
-all.trt.degs.filtered <- all.trt.degs %>%
-  filter(abs(log2FoldChange) >= 1)
+logFC.trt.degs <- all.trt.degs %>%
+  filter(abs(logFC) >= 1)
+
+logFC.myc.degs
+logFC.trt.degs
 ```
  
+here are my four datasets:
 
+```{r}
+sig.myc.degs #all sig myc genes > 0.1 FDR
+sig.trt.degs #all sig trt genes > 0.01 FDR
+logFC.myc.degs #all genes > abs Log2FC 1
+logFC.trt.degs #all genes > abs Log2FC 1
+```
+
+let's try to make heatmaps.
+
+```{r}
+
+```
 
 
 
