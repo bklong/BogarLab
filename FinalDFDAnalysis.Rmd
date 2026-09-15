@@ -402,7 +402,7 @@ let's try to make heatmaps.
 library(edgeR)
 library(pheatmap)
 
-# 1. Extract interaction DEGs (gene names)
+# 1. Extract DEGs (gene names)
 sig.myc.genes.names <- rownames(sig.myc.degs)
 
 # 2. Compute logCPM and subset matrix for interaction genes only
@@ -431,6 +431,106 @@ pheatmap(
   clustering_distance_cols = "euclidean",
   clustering_method = "complete",
   main = "Myc DEGs > 0.1 FDR"
+)
+```
+
+```{r}
+# 1. Extract DEGs (gene names)
+sig.trt.genes.names <- rownames(sig.trt.degs)
+
+# 2. Compute logCPM and subset matrix for interaction genes only
+logcpm <- cpm(dge.data, log = TRUE)
+sig.trt.heatmap.matrix <- logcpm[sig.trt.genes.names, ]
+
+# 3. Filter out zero-variance rows (prevents scaling errors)
+row.variances <- apply(sig.trt.heatmap.matrix, 1, var, na.rm = TRUE)
+sig.trt.clean <- sig.trt.heatmap.matrix[row_variances > 0 & !is.na(row_variances), ]
+
+# 4. Build group annotations
+annotation.col <- data.frame(
+  Group = dge.data$samples$group,
+  row.names = colnames(logcpm)
+)
+
+# 5. Render the interaction heatmap
+pheatmap(
+  sig.trt.clean,
+  scale = "row",                    # Standardize row expression (Z-score)
+  annotation_col = annotation.col,  # Show sample groups at top
+  border_color = NA,               # Clean tile display
+  show_rownames = FALSE,           # Hide dense row labels
+  show_colnames = TRUE,            # Show sample names
+  clustering_distance_rows = "euclidean",
+  clustering_distance_cols = "euclidean",
+  clustering_method = "complete",
+  main = "Trt DEGs > 0.01 FDR"
+)
+```
+
+```{r}
+# 1. Extract DEGs (gene names)
+logFC.myc.genes.names <- rownames(logFC.myc.degs)
+
+# 2. Compute logCPM and subset matrix for interaction genes only
+logcpm <- cpm(dge.data, log = TRUE)
+logFC.myc.heatmap.matrix <- logcpm[logFC.myc.genes.names, ]
+
+# 3. Filter out zero-variance rows (prevents scaling errors)
+row.variances <- apply(logFC.myc.heatmap.matrix, 1, var, na.rm = TRUE)
+logFC.myc.clean <- logFC.myc.heatmap.matrix[row_variances > 0 & !is.na(row_variances), ]
+
+# 4. Build group annotations
+annotation.col <- data.frame(
+  Group = dge.data$samples$group,
+  row.names = colnames(logcpm)
+)
+
+# 5. Render the interaction heatmap
+pheatmap(
+  logFC.myc.clean,
+  scale = "row",                    # Standardize row expression (Z-score)
+  annotation_col = annotation.col,  # Show sample groups at top
+  border_color = NA,               # Clean tile display
+  show_rownames = FALSE,           # Hide dense row labels
+  show_colnames = TRUE,            # Show sample names
+  clustering_distance_rows = "euclidean",
+  clustering_distance_cols = "euclidean",
+  clustering_method = "complete",
+  main = "Myc DEGs > 1 logFC"
+)
+```
+
+
+```{r}
+# 1. Extract DEGs (gene names)
+logFC.trt.genes.names <- rownames(logFC.trt.degs)
+
+# 2. Compute logCPM and subset matrix for interaction genes only
+logcpm <- cpm(dge.data, log = TRUE)
+logFC.trt.heatmap.matrix <- logcpm[logFC.trt.genes.names, ]
+
+# 3. Filter out zero-variance rows (prevents scaling errors)
+row.variances <- apply(logFC.trt.heatmap.matrix, 1, var, na.rm = TRUE)
+logFC.trt.clean <- logFC.trt.heatmap.matrix[row_variances > 0 & !is.na(row_variances), ]
+
+# 4. Build group annotations
+annotation.col <- data.frame(
+  Group = dge.data$samples$group,
+  row.names = colnames(logcpm)
+)
+
+# 5. Render the interaction heatmap
+pheatmap(
+  logFC.trt.clean,
+  scale = "row",                    # Standardize row expression (Z-score)
+  annotation_col = annotation.col,  # Show sample groups at top
+  border_color = NA,               # Clean tile display
+  show_rownames = FALSE,           # Hide dense row labels
+  show_colnames = TRUE,            # Show sample names
+  clustering_distance_rows = "euclidean",
+  clustering_distance_cols = "euclidean",
+  clustering_method = "complete",
+  main = "Trt DEGs > 1 logFC"
 )
 ```
 
