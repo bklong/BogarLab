@@ -1,0 +1,18 @@
+---
+title: "Kazu"
+author: "Britt"
+date: "2024-07-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Kazu's method for combining two reference fasta files (two genomes)/(two transcriptomes) into one before indexing and then mapping:
+
+```{bash, eval = FALSE}
+cat first.fasta second.fasta > new_combined.fasta
+```
+
+something like the above...play around with it later

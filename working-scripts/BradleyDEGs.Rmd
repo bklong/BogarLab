@@ -1,0 +1,547 @@
+---
+title: "Bradley DEGs"
+author: "Britt"
+date: "2024-09-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Download counts tables from Bogar server:
+
+```{bash, eval = FALSE}
+#in personal computer terminal:
+
+scp -P 22345 bklong@bogarprecision.plb.ucdavis.edu:~/DemRNAanalysis/BioShare/04-Counts/Psme_RNASeq_July2024_Psme.1_0_counts.txt /c/Users/britt/Downloads
+
+scp -P 22345 bklong@bogarprecision.plb.ucdavis.edu:~/DemRNAanalysis/BioShare/04-Counts/Psme_RNASeq_July2024_Trucit1_1_counts.txt /c/Users/britt/Downloads
+```
+
+The counts tables are now on my personal computer where R can access them.
+
+### Starting Analysis for Both:
+
+**Basic steps for DGE Analysis**
+
+1.  Load the RNAseq counts.
+2.  Normalize the counts.
+3.  QC the counts.
+4.  Create a data frame that describes the experiment.
+5.  Determine the dispersion parameter (how over-dispersed is the data?)
+6.  Fit a statistical model for gene expression as a function of experimental parameters.
+7.  Test the significance of experimental parameters for explaining gene expression.
+8.  Examine result.
+
+Let's take a look at the data:
+
+```{r}
+PM_counts <- read.table("Psme_RNASeq_July2024_Psme.1_0_counts.txt", header = TRUE) 
+
+PM_counts
+```
+
+```{r}
+TC_counts <- read.table("Psme_RNASeq_July2024_Trucit1_1_counts.txt", header = TRUE) 
+TC_counts
+```
+
+Filter the counts data so that you only retain genes that were expressed:
+
+```{r}
+#retain only the reads that were over 10 count in at least three samples
+
+TC_counts <- TC_counts[rowSums(TC_counts[,-1] > 10) >= 3,]
+
+TC_counts
+
+PM_counts <- PM_counts[rowSums(PM_counts[,-1] > 10) >= 3,]
+
+PM_counts
+```
+
+Remove Transcript ID column (convert dataframe to tibble).
+
+```{r}
+library(tibble)
+
+TC_counts_noid <- as_tibble(TC_counts)
+
+TC_counts_noid
+
+PM_counts_noid <- as_tibble(PM_counts)
+
+PM_counts_noid
+```
+
+Log transform the counts data.
+
+```{r}
+transformed.TC.counts <- log2(TC_counts_noid + 1) 
+transformed.PM.counts <- log2(PM_counts_noid + 1)
+```
+
+Correlation table and pairs:
+
+```{r}
+cor.table.TC <- cor(TC_counts_noid)
+cor.table.PM <- cor(PM_counts_noid)
+```
+
+```{r}
+pairs(transformed.PM.counts)
+pairs(transformed.TC.counts)
+```
+
+```{r}
+library(tidyverse)
+
+cor.table.PM %>% gplots::heatmap.2(dendrogram="row", trace = "none", col=viridis::viridis(25, begin=.25), margins=c(4,4))
+```
+
+```{r}
+cor.table.TC %>% gplots::heatmap.2(dendrogram="row", trace = "none", col=viridis::viridis(25, begin=.25), margins=c(4,4))
+```
+
+```{r}
+#make tibble with descriptions from counts data table
+sample.description <- tibble(sample=colnames(TC_counts_noid))
+
+sample.description
+```
+
+```{r}
+sample.description <- sample.description %>%
+  mutate(
+    sp = c("NM", "NM", "NM", "NM", "ST", "NM", "TC", "ST", "ST", "NM", "TC", "NM", "NM", "ST", "NM", "ST", "NM", "NM", "NM", "ST", "NA"),  
+    trt = c("C", "C", "T", "C", "C", "T", "T", "T", "C", "C", "C", "C", "T", "T", "C", "C", "C", "T", "T", "T", "NA"),  
+    group = paste(sp, trt, sep = "_")
+  )
+
+sample.description
+```
+
+```{r}
+sample.description <- sample.description %>%
+  slice(1:(n() - 1))
+sample.description
+```
+
+```{r}
+sample.description <- sample.description %>%
+  mutate(sp=factor(sp), 
+         trt=factor(trt,levels = c("C","T"))) # setting the levels in this way makes "C" the reference  
+
+sample.description
+```
+
+### Tree Counts Analysis:
+
+```{r}
+library(edgeR)
+
+counts.matrix.PM <- PM_counts %>% as.matrix()
+
+counts.matrix.PM
+```
+
+```{r}
+#remove unassigned row
+
+counts.matrix.PM <- counts.matrix.PM[, -21]
+
+counts.matrix.PM
+```
+
+```{r}
+dge.data.PM <- DGEList(counts=counts.matrix.PM, 
+                    group=sample.description$group)
+dim(dge.data.PM) 
+dge.data.PM <- calcNormFactors(dge.data.PM, method = "TMM")
+dge.data.PM$samples # look at the normalization factors
+```
+
+MDS plot:
+
+```{r}
+plotMDS(dge.data.PM)
+```
+
+Nicer MDS:
+
+```{r}
+mdsvals <- plotMDS(dge.data.PM, plot = FALSE) # get the MDS values for plotting
+
+tibble(x=mdsvals$x, y=mdsvals$y, sample=rownames(dge.data.PM$samples)) %>%
+  inner_join(sample.description) %>%
+  ggplot(aes(x=x, y=y, color=trt, shape=sp)) +
+  geom_point(size=3) 
+```
+
+```{r}
+#does this even get used somewhere? this may be an area to ask for help in...may be a mistake
+
+PM.counts.normal <- cpm(dge.data.PM) 
+
+# or log2 transformed:
+PM.counts.normal.log <- cpm(dge.data.PM,log = TRUE)
+```
+
+```{r}
+#sample.description is the original descriptive dataset (describes our samples but doesn't have counts data)
+
+design.PM <- model.matrix(~sp+trt,data = sample.description)
+rownames(design.PM) <- sample.description$sample
+design.PM
+```
+
+```{r}
+#First the overall dispersion
+dge.data.PM <- estimateGLMCommonDisp(dge.data.PM,design.PM,verbose = TRUE)
+
+#Then a trended dispersion based on count level
+dge.data.PM <- estimateGLMTrendedDisp(dge.data.PM,design.PM)
+
+#And lastly we calculate the gene-wise dispersion, using the prior estimates to "squeeze" the dispersion towards the common dispersion.
+dge.data.PM <- estimateGLMTagwiseDisp(dge.data.PM,design.PM)
+
+#We can examine this with a plot
+plotBCV(dge.data.PM)
+```
+
+```{r}
+#this is the full model with all coefficients
+#dge.data is the normalized count data
+fit.PM <- glmFit(dge.data.PM, design.PM)
+```
+
+```{r}
+#this model looks at genes differentially expressed between two treatments
+trt.lrt.PM <- glmLRT(fit.PM,coef = "trtT")
+```
+
+```{r}
+#this model between species
+#there are three species...how to fix?
+# Create a contrast vector
+# The vector should be 1 for the intercept (reference level) and -0.5 for each non-reference level in the comparison
+contrast <- c(1, -0.5, -0.5, 0)  
+# Adjust according to your design matrix columns
+
+# Perform the likelihood ratio test with the custom contrast
+sp.lrt.PM <- glmLRT(fit.PM,contrast = contrast)
+```
+
+```{r}
+sp.lrt.PM.TC <- glmLRT(fit.PM,coef = "spTC")
+sp.lrt.PM.ST <- glmLRT(fit.PM, coef = "spST")
+```
+
+```{r}
+top10.sp.PM.ST <- topTags(sp.lrt.PM.ST) # the top 10 most differentially expressed genes between the two treatments (using the above model)
+top10.sp.PM.ST
+```
+
+```{r}
+top10.sp.PM.TC <- topTags(sp.lrt.PM.TC) # the top 10 most differentially expressed genes between the two treatments (using the above model)
+top10.sp.PM.TC
+```
+
+```{r}
+top10.sp.PM <- topTags(sp.lrt.PM) # the top 10 most differentially expressed genes between the two treatments (using the above model)
+top10.sp.PM
+```
+
+```{r}
+top10.trt.PM <- topTags(trt.lrt.PM) # the top 10 most differentially expressed genes between the two treatments (using the above model)
+top10.trt.PM
+```
+
+```{r}
+summary(decideTestsDGE(trt.lrt.PM,p.value=0.01)) #This uses the FDR.  0.05 would be OK also.
+```
+
+```{r}
+summary(decideTestsDGE(sp.lrt.PM,p.value=0.01)) #This uses the FDR.  0.05 would be OK also.
+```
+
+```{r}
+summary(decideTestsDGE(sp.lrt.PM.TC,p.value=0.01)) #This uses the FDR.  0.05 would be OK also.
+```
+
+```{r}
+summary(decideTestsDGE(sp.lrt.PM.ST,p.value=0.01)) #This uses the FDR.  0.05 would be OK also.
+```
+
+heatmap attempt:
+
+```{r}
+library(pheatmap)
+pheatmap(PM.counts.normal.log, scale = "row")
+```
+
+make new dataframe to make heatmap that has treatments included in sample labels:
+
+```{r}
+PM.counts.normal.log.named <- PM.counts.normal.log
+colnames(PM.counts.normal.log.named) <- c("NM_C_001", "NM_C_005", "NM_T_009", "NM_C_016", "S+T_C_019", "NM_T_023", "TC_T_026", "S+T_T_027", "S+T_C_030", "NM_C_043", "TC_C_045", "NM_C_049", "NM_T_050", "S+T_T_052", "NM_C_057", "S+T_C_062", "NM_C_080", "NM_T_082", "NM_T_085", "S+T_T_087")
+
+PM.counts.normal.log.named
+```
+
+```{r}
+pheatmap(PM.counts.normal.log.named, scale = "row")
+```
+
+```{r}
+# Subset for top genes
+top_genes_trt <- rownames(topTags(trt.lrt.PM, n = 50)$table)
+top50PMtrt <- PM.counts.normal.log[top_genes, ]
+
+#write .csv file
+write.csv(top50PM, file = "top50PMtrt.csv")
+```
+
+interaction DEGs for PM:
+
+```{r}
+design.PM.interaction <- model.matrix(~sp*trt,data = sample.description)
+
+rownames(design.PM.interaction) <- sample.description$sample
+
+design.PM.interaction
+```
+
+```{r}
+#First the overall dispersion
+dge.data.PM.interaction <- estimateGLMCommonDisp(dge.data.PM,design.PM.interaction,verbose = TRUE)
+
+#Then a trended dispersion based on count level
+dge.data.PM.interaction <- estimateGLMTrendedDisp(dge.data.PM.interaction,design.PM.interaction)
+
+#And lastly we calculate the gene-wise dispersion, using the prior estimates to "squeeze" the dispersion towards the common dispersion.
+dge.data.PM.interaction <- estimateGLMTagwiseDisp(dge.data.PM.interaction,design.PM.interaction)
+
+#We can examine this with a plot
+plotBCV(dge.data.PM.interaction)
+```
+
+```{r}
+fit.interaction.PM <- glmFit(dge.data.PM.interaction, design.PM.interaction)
+```
+
+```{r, eval = FALSE}
+#I can't figure this out
+
+# Original interaction term name
+STinteraction <- "spST:trtT"
+TCinteraction <- "spTC:trtT"
+
+# Convert it to a valid name
+STinteraction <- make.names(STinteraction)
+TCinteraction <- make.names(TCinteraction)
+
+# Use this valid name in makeContrasts
+contrast.matrix <- makeContrasts(
+    interaction1 = STinteraction,
+    interaction2 = TCinteraction,
+    levels = design.PM.interaction
+)
+
+lrt.interaction.PM <- glmLRT(fit.PM, contrast = contrast.matrix)
+```
+
+```{r}
+lrt.interaction.PM <- glmLRT(fit.interaction.PM, coef = "spST:trtT")
+```
+
+```{r}
+lrt.interaction.PM2 <- glmLRT(fit.interaction.PM, coef = "spTC:trtT")
+```
+
+```{r}
+topTags(lrt.interaction.PM) # the top 10 most differentially expressed genes
+```
+
+```{r}
+topTags(lrt.interaction.PM2)
+```
+
+```{r}
+summary(decideTestsDGE(lrt.interaction.PM2, p.value=0.01))
+```
+
+```{r}
+summary(decideTestsDGE(lrt.interaction.PM,p.value=0.01)) #This uses the FDR.  0.05 would be OK also.
+```
+
+```{r}
+#Extract genes with a FDR < 0.01 (could also use 0.05)
+PM.ST.interaction <- topTags(lrt.interaction.PM,n = Inf,p.value = 0.01)$table
+
+PM.TC.interaction <- topTags(lrt.interaction.PM2, n = Inf, p.value = 0.01)$table
+
+#save to a file
+write.csv(PM.ST.interaction,"PM.ST.interaction.csv")
+write.csv(PM.TC.interaction,"PM.TC.interaction.csv")
+```
+
+```{bash, eval = FALSE}
+zgrep ">PSME_30375" Psme.1_0.fa.gz
+```
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+PM to do:
+
+visualization for PM DEGs
+
+annotation for PM DEGs
+
+interaction DEGs for PM (between 3 sp and 2 trt, tricky)
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+### Fungal Counts Analysis:
+
+**Basic steps for DGE Analysis**
+
+1.  Load the RNAseq counts.
+2.  Normalize the counts.
+3.  QC the counts.
+4.  Create a data frame that describes the experiment.
+5.  Determine the dispersion parameter (how over-dispersed is the data?)
+6.  Fit a statistical model for gene expression as a function of experimental parameters.
+7.  Test the significance of experimental parameters for explaining gene expression.
+8.  Examine result.
+
+```{r}
+counts.matrix.TC <- TC_counts %>% as.matrix()
+
+counts.matrix.TC
+```
+
+```{r}
+#remove unassigned row
+
+counts.matrix.TC <- counts.matrix.TC[, -21]
+
+counts.matrix.TC
+```
+
+```{r}
+dge.data.TC <- DGEList(counts=counts.matrix.TC, 
+                    group=sample.description$group)
+dim(dge.data.TC) 
+dge.data.TC <- calcNormFactors(dge.data.TC, method = "TMM")
+dge.data.TC$samples # look at the normalization factors
+```
+
+MDS:
+
+```{r}
+mdsvals <- plotMDS(dge.data.TC, plot = FALSE) # get the MDS values for plotting
+
+tibble(x=mdsvals$x, y=mdsvals$y, sample=rownames(dge.data.TC$samples)) %>%
+  inner_join(sample.description) %>%
+  ggplot(aes(x=x, y=y, color=trt, shape=sp)) +
+  geom_point(size=3) 
+```
+
+```{r}
+TC.counts.normal <- cpm(dge.data.TC) 
+
+# or log2 transformed:
+TC.counts.normal.log <- cpm(dge.data.TC,log = TRUE)
+```
+
+```{r}
+design.TC <- model.matrix(~sp+trt,data = sample.description)
+rownames(design.TC) <- sample.description$sample
+design.TC
+```
+
+```{r}
+design.TC.interaction <- model.matrix(~sp*trt,data = sample.description)
+rownames(design.TC) <- sample.description$sample
+design.TC
+```
+
+```{r}
+#First the overall dispersion
+dge.data.TC <- estimateGLMCommonDisp(dge.data.TC,design.TC,verbose = TRUE)
+
+#Then a trended dispersion based on count level
+dge.data.TC <- estimateGLMTrendedDisp(dge.data.TC,design.TC)
+
+#And lastly we calculate the gene-wise dispersion, using the prior estimates to "squeeze" the dispersion towards the common dispersion.
+dge.data.TC <- estimateGLMTagwiseDisp(dge.data.TC,design.TC)
+
+#We can examine this with a plot
+plotBCV(dge.data.TC)
+```
+
+```{r}
+#First the overall dispersion
+dge.data.TC.interaction <- estimateGLMCommonDisp(dge.data.TC,design.TC.interaction,verbose = TRUE)
+
+#Then a trended dispersion based on count level
+dge.data.TC.interaction <- estimateGLMTrendedDisp(dge.data.TC.interaction,design.TC.interaction)
+
+#And lastly we calculate the gene-wise dispersion, using the prior estimates to "squeeze" the dispersion towards the common dispersion.
+dge.data.TC.interaction <- estimateGLMTagwiseDisp(dge.data.TC.interaction,design.TC.interaction)
+
+#We can examine this with a plot
+plotBCV(dge.data.TC.interaction)
+```
+
+```{r}
+#this is the full model with all coefficients
+#dge.data is the normalized count data
+fit.TC <- glmFit(dge.data.TC, design.TC)
+
+#and for the interaction:
+fit.TC.interaction <- glmFit(dge.data.TC.interaction, design.TC.interaction)
+
+#this model looks at genes differentially expressed between two treatments
+trt.lrt.TC <- glmLRT(fit.TC,coef = "trtT")
+
+#comparing sp
+sp.lrt.TC.TC <- glmLRT(fit.TC,coef = "spTC")
+sp.lrt.TC.ST <- glmLRT(fit.TC, coef = "spST")
+
+#interaction
+lrt.interaction.TC <- glmLRT(fit.TC.interaction, coef = "spST:trtT")
+lrt.interaction.TC2 <- glmLRT(fit.TC.interaction, coef = "spTC:trtT")
+```
+
+```{r}
+topTags(trt.lrt.TC)
+topTags(sp.lrt.TC.TC)
+topTags(sp.lrt.TC.ST)
+topTags(lrt.interaction.TC)
+topTags(lrt.interaction.TC2)
+```
+
+```{r}
+summary(decideTestsDGE(trt.lrt.TC, p.value = 0.05))
+summary(decideTestsDGE(sp.lrt.TC.ST, p.value=0.05))
+summary(decideTestsDGE(sp.lrt.TC.TC, p.value=0.05))
+summary(decideTestsDGE(lrt.interaction.TC, p.value=0.05))
+summary(decideTestsDGE(lrt.interaction.TC2, p.value=0.05))
+```
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+TC to do:
+
+visualization
+
+annotation
+
+figure out interaction DEGs (same as PM w multiple levels of factors)
+
+lskfjlksdjflksj
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
