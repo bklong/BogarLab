@@ -430,7 +430,10 @@ pheatmap(
   clustering_distance_rows = "euclidean",
   clustering_distance_cols = "euclidean",
   clustering_method = "complete",
-  main = "Myc DEGs > 0.1 FDR"
+  main = "Myc DEGs > 0.1 FDR",
+   filename = "results/new-results/sig.myc.heatmap.pdf",  # Saved to new subfolder
+  width = 8,
+  height = 10
 )
 ```
 
@@ -463,7 +466,10 @@ pheatmap(
   clustering_distance_rows = "euclidean",
   clustering_distance_cols = "euclidean",
   clustering_method = "complete",
-  main = "Trt DEGs > 0.01 FDR"
+  main = "Trt DEGs > 0.01 FDR",
+   filename = "results/new-results/sig.trt.heatmap.pdf",  # Saved to new subfolder
+  width = 8,
+  height = 10
 )
 ```
 
@@ -496,7 +502,10 @@ pheatmap(
   clustering_distance_rows = "euclidean",
   clustering_distance_cols = "euclidean",
   clustering_method = "complete",
-  main = "Myc DEGs > 1 logFC"
+  main = "Myc DEGs > 1 logFC",
+   filename = "results/new-results/logFC.myc.heatmap.pdf",  # Saved to new subfolder
+  width = 8,
+  height = 10
 )
 ```
 
