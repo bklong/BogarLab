@@ -1,0 +1,43 @@
+---
+title: "filtering and sample description"
+author: "Britt"
+date: "2026-09-16"
+output: html_document
+---
+
+
+```{r}
+PM.counts <- read.table("Psme_RNASeq_July2024_Psme.1_0_counts.txt", header = TRUE) 
+PM.counts
+```
+
+```{r}
+PM.counts <- PM.counts[rowSums(PM.counts[,-1] > 10) >= 3,]
+PM.counts
+```
+
+```{r}
+library(tibble)
+PM.counts.noid <- as_tibble(PM.counts)
+PM.counts.noid
+```
+
+```{r}
+library(tidyverse)
+sample.description <- tibble(sample=colnames(TC.counts.noid))
+sample.description <- sample.description %>%
+  mutate(
+    myc = c("NM", "NM", "NM", "NM", "M", "NM", "M", "M", "M", "NM", "M", "NM", "NM", "M", "NM", "M", "NM", "NM", "NM", "M", "NA"),  
+    trt = c("C", "C", "T", "C", "C", "T", "T", "T", "C", "C", "C", "C", "T", "T", "C", "C", "C", "T", "T", "T", "NA"),  
+    group = paste(myc, trt, sep = "_")
+  )
+sample.description <- sample.description %>%
+  slice(1:(n() - 1))
+sample.description <- sample.description %>%
+  mutate(myc=factor(myc, levels = c("NM","M")), 
+         trt=factor(trt,levels = c("C","T"))) # setting the levels in this way makes "C and NM" the reference
+sample.description
+```
+
+
+
