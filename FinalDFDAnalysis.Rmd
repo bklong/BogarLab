@@ -530,10 +530,51 @@ pheatmap(
   clustering_distance_rows = "euclidean",
   clustering_distance_cols = "euclidean",
   clustering_method = "complete",
-  main = "Trt DEGs > 1 logFC"
+  main = "Trt DEGs > 1 logFC",
+)
+
+# 1. Create the nested results/new-results folder
+dir.create("results/new-results", recursive = TRUE, showWarnings = FALSE)
+
+# 2. Reset any active graphic connections from previous attempts
+while (!is.null(dev.list())) { dev.off() }
+
+```
+
+
+```{r}
+# 3. Export heatmap to the new subfolder
+pheatmap(
+  logFC.trt.clean,
+  scale = "row",
+  annotation_col = annotation.col,
+  border_color = NA,
+  show_rownames = FALSE,
+  show_colnames = TRUE,
+  clustering_distance_rows = "euclidean",
+  clustering_distance_cols = "euclidean",
+  clustering_method = "complete",
+  main = "Trt DEGs > 1 logFC",
+  filename = "results/new-results/logFC.trt.heatmap.pdf",  # Saved to new subfolder
+  width = 8,
+  height = 10
 )
 ```
 
-test
+
+
+let's save heatmaps
+
+```{r}
+# Save as high-resolution PNG
+pheatmap(
+  mat_scaled,
+  filename = "results/heatmap.png",
+  width = 8,
+  height = 10,
+  res = 300  # Sets resolution to 300 DPI
+)
+```
+
 
 
