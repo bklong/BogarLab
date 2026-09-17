@@ -1,0 +1,16 @@
+---
+title: "annotate-genes"
+author: "Britt"
+date: "2026-09-17"
+output: html_document
+---
+
+Let's try to brainstorm a way to annotate some of our DEGs.
+
+
+
+
+
+
+
+
