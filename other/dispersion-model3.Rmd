@@ -29,7 +29,6 @@ dge.data$samples # look at the normalization factors
 (make ordination here)
 
 
-Fit a statistical model for gene expression as a function of experimental parameters.
 
 
 
@@ -55,6 +54,8 @@ dge.data <- estimateDisp(dge.data, interaction.design)
 # View the dispersion estimates
 summary(dge.data$tagwise.dispersion)
 ```
+
+Fit a statistical model for gene expression as a function of experimental parameters.
 
 
 
