@@ -1,0 +1,13 @@
+---
+title: "dispersion-model"
+author: "Britt"
+date: "2026-09-17"
+output: html_document
+---
+
+Determine the dispersion parameter (how over-dispersed is the data?)
+
+
+
+
+Fit a statistical model for gene expression as a function of experimental parameters.
