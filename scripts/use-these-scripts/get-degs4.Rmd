@@ -8,3 +8,24 @@ output: html_document
 Test the significance of experimental parameters for explaining gene expression.
 
 
+```{r}
+summary(decideTests(myc.qlf, p.value=0.1))
+summary(decideTests(trt.qlf, p.value=0.01))
+summary(decideTests(interaction.qlf, p.value=0.5))
+```
+
+```{r}
+top10.trt <- topTags(trt.qlf)
+top10.myc <- topTags(myc.qlf) 
+top10.interaction <- topTags(interaction.qlf)
+
+top10.trt
+top10.myc
+top10.interaction
+```
+Notes:
+
+interaction: no sig genes, top genes at 0.5 FDR and higher (not 0.25 threshold Laura and I discussed)
+myc: sig genes at above 0.05 FDR, set at exploratory 0.1 produces sig DEGs
+trt: sig genes at 0.01 FDR
+
