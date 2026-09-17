@@ -8,6 +8,24 @@ output: html_document
 Let's try to brainstorm a way to annotate some of our DEGs.
 
 
+let's start with extracting protein sequences from genes of interest
+
+```{r}
+library(Biostrings)
+
+# 1. Load your master protein/transcript FASTA
+all_sequences <- readAAStringSet("path/to/full_predicted_orfs.faa") 
+# (Use readDNAStringSet if uploading nucleotide sequences)
+
+# 2. Define your vector of target DEGs (e.g., genes with |logFC| > 1)
+target_gene_ids <- rownames(top_degs)
+
+# 3. Filter sequences matching your target IDs
+selected_sequences <- all_sequences[names(all_sequences) %in% target_gene_ids]
+
+# 4. Save the subset to a new FASTA file
+writeXStringSet(selected_sequences, "results/new-results/top_DEGs_for_eggnog.fasta")
+```
 
 
 
