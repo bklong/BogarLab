@@ -1,0 +1,362 @@
+---
+title: "make-heatmaps5"
+author: "Britt"
+date: "2026-09-17"
+output: html_document
+---
+
+let's start by getting ALL DEGs from the three treatments
+
+```{r}
+all.myc.degs <- as.data.frame(topTags(myc.qlf, n = Inf))
+all.trt.degs <- as.data.frame(topTags(trt.qlf, n = Inf))
+all.int.degs <- as.data.frame(topTags(interaction.qlf, n = Inf))
+```
+
+```{r}
+print(all.myc.degs)
+print(all.trt.degs)
+print(all.int.degs)
+```
+
+
+```{r}
+library(edgeR)
+library(pheatmap)
+```
+
+
+
+```{r}
+
+# 1. Extract row names from each DEG object
+genes_trt <- rownames(top25.trt.degs)
+genes_myc <- rownames(top25.myc.degs)
+genes_int <- rownames(top25.int.degs)
+
+# 2. Combine into a single vector and remove duplicate gene IDs
+master_gene_list <- unique(c(genes_trt, genes_myc, genes_int))
+
+# 3. Compute logCPM matrix and subset to master DEG list
+logcpm <- cpm(dge.data, log = TRUE)
+combined_heatmap_matrix <- logcpm[master_gene_list, ]
+
+# 4. Build column annotation matching matrix column names
+annotation_col <- data.frame(
+  Group = dge.data$samples$group,
+  row.names = colnames(logcpm)
+)
+
+# -----------------------------------------------------------------------------
+# 5. Display Separate Heatmaps Directly in RStudio Plot Window
+# -----------------------------------------------------------------------------
+
+group_list <- unique(annotation_col$Group)
+
+for (grp in group_list) {
+  
+  # Identify sample columns belonging to current group
+  group_samples <- rownames(annotation_col[annotation_col$Group == grp, , drop = FALSE])
+  
+  # Subset matrix for current group samples
+  group_matrix <- combined_heatmap_matrix[, group_samples, drop = FALSE]
+  
+  # Filter out zero-variance rows
+  row_variances <- apply(group_matrix, 1, var, na.rm = TRUE)
+  group_matrix_clean <- group_matrix[row_variances > 0 & !is.na(row_variances), , drop = FALSE]
+  
+  if (nrow(group_matrix_clean) > 1) {
+    # REMOVED filename argument to force on-screen rendering
+    pheatmap(
+      group_matrix_clean,
+      scale = "row",
+      border_color = NA,
+      show_rownames = FALSE,
+      show_colnames = TRUE,
+      cluster_cols = TRUE,
+      main = paste("Top DEGs - Group:", grp)
+    )
+  }
+}
+```
+
+
+```{r}
+library(edgeR)
+library(pheatmap)
+
+# 1. Extract interaction DEGs (gene names)
+interaction_genes <- rownames(top25.int.degs)
+
+# 2. Compute logCPM and subset matrix for interaction genes only
+logcpm <- cpm(dge.data, log = TRUE)
+int_heatmap_matrix <- logcpm[interaction_genes, ]
+
+# 3. Filter out zero-variance rows (prevents scaling errors)
+row_variances <- apply(int_heatmap_matrix, 1, var, na.rm = TRUE)
+int_heatmap_matrix_clean <- int_heatmap_matrix[row_variances > 0 & !is.na(row_variances), ]
+
+# 4. Build group annotations
+annotation_col <- data.frame(
+  Group = dge.data$samples$group,
+  row.names = colnames(logcpm)
+)
+
+# 5. Render the interaction heatmap
+pheatmap(
+  int_heatmap_matrix_clean,
+  scale = "row",                    # Standardize row expression (Z-score)
+  annotation_col = annotation_col,  # Show sample groups at top
+  border_color = NA,               # Clean tile display
+  show_rownames = FALSE,           # Hide dense row labels
+  show_colnames = TRUE,            # Show sample names
+  clustering_distance_rows = "euclidean",
+  clustering_distance_cols = "euclidean",
+  clustering_method = "complete",
+  main = "Top DEGs - Interaction Effect"
+)
+```
+
+----------------------------------------------------
+new plan - let's make 4 heatmaps...
+
+1. heatmap of drought genes @ FDR 0.01
+2. heatmap of all drought genes with highest mag change
+3. heatmap of myc genes @ FDR 0.1
+4. heatmap of all myc genes with highest mag change
+
+so, we need two datasets...one with only drought genes and one with only myc genes
+
+I already made them!
+
+```{r}
+all.myc.degs
+all.trt.degs
+```
+ Now I can filter for certain FDR and logFC values...
+ FDR first
+ 
+```{r}
+sig.trt.degs <- topTags(trt.qlf, n = Inf, p.value = 0.01)$table
+sig.myc.degs <- topTags(myc.qlf, n = Inf, p.value = 0.1)$table
+
+sig.trt.degs
+sig.myc.degs
+```
+ and now logFC...
+ 
+```{r}
+library(dplyr)
+
+# Filter strictly for |log2FC| >= 1
+logFC.myc.degs <- all.myc.degs %>%
+  filter(abs(logFC) >= 1)
+
+logFC.trt.degs <- all.trt.degs %>%
+  filter(abs(logFC) >= 1)
+
+logFC.myc.degs
+logFC.trt.degs
+```
+ 
+here are my four datasets:
+
+```{r}
+sig.myc.degs #all sig myc genes > 0.1 FDR
+sig.trt.degs #all sig trt genes > 0.01 FDR
+logFC.myc.degs #all genes > abs Log2FC 1
+logFC.trt.degs #all genes > abs Log2FC 1
+```
+
+let's try to make heatmaps.
+
+```{r}
+library(edgeR)
+library(pheatmap)
+
+# 1. Extract DEGs (gene names)
+sig.myc.genes.names <- rownames(sig.myc.degs)
+
+# 2. Compute logCPM and subset matrix for interaction genes only
+logcpm <- cpm(dge.data, log = TRUE)
+sig.myc.heatmap.matrix <- logcpm[sig.myc.genes.names, ]
+
+# 3. Filter out zero-variance rows (prevents scaling errors)
+row.variances <- apply(sig.myc.heatmap.matrix, 1, var, na.rm = TRUE)
+sig.myc.clean <- sig.myc.heatmap.matrix[row_variances > 0 & !is.na(row_variances), ]
+
+# 4. Build group annotations
+annotation.col <- data.frame(
+  Group = dge.data$samples$group,
+  row.names = colnames(logcpm)
+)
+
+# 5. Render the interaction heatmap
+pheatmap(
+  sig.myc.clean,
+  scale = "row",                    # Standardize row expression (Z-score)
+  annotation_col = annotation.col,  # Show sample groups at top
+  border_color = NA,               # Clean tile display
+  show_rownames = FALSE,           # Hide dense row labels
+  show_colnames = TRUE,            # Show sample names
+  clustering_distance_rows = "euclidean",
+  clustering_distance_cols = "euclidean",
+  clustering_method = "complete",
+  main = "Myc DEGs > 0.1 FDR",
+   filename = "results/new-results/sig.myc.heatmap.pdf",  # Saved to new subfolder
+  width = 8,
+  height = 10
+)
+```
+
+```{r}
+# 1. Extract DEGs (gene names)
+sig.trt.genes.names <- rownames(sig.trt.degs)
+
+# 2. Compute logCPM and subset matrix for interaction genes only
+logcpm <- cpm(dge.data, log = TRUE)
+sig.trt.heatmap.matrix <- logcpm[sig.trt.genes.names, ]
+
+# 3. Filter out zero-variance rows (prevents scaling errors)
+row.variances <- apply(sig.trt.heatmap.matrix, 1, var, na.rm = TRUE)
+sig.trt.clean <- sig.trt.heatmap.matrix[row_variances > 0 & !is.na(row_variances), ]
+
+# 4. Build group annotations
+annotation.col <- data.frame(
+  Group = dge.data$samples$group,
+  row.names = colnames(logcpm)
+)
+
+# 5. Render the interaction heatmap
+pheatmap(
+  sig.trt.clean,
+  scale = "row",                    # Standardize row expression (Z-score)
+  annotation_col = annotation.col,  # Show sample groups at top
+  border_color = NA,               # Clean tile display
+  show_rownames = FALSE,           # Hide dense row labels
+  show_colnames = TRUE,            # Show sample names
+  clustering_distance_rows = "euclidean",
+  clustering_distance_cols = "euclidean",
+  clustering_method = "complete",
+  main = "Trt DEGs > 0.01 FDR",
+   filename = "results/new-results/sig.trt.heatmap.pdf",  # Saved to new subfolder
+  width = 8,
+  height = 10
+)
+```
+
+```{r}
+# 1. Extract DEGs (gene names)
+logFC.myc.genes.names <- rownames(logFC.myc.degs)
+
+# 2. Compute logCPM and subset matrix for interaction genes only
+logcpm <- cpm(dge.data, log = TRUE)
+logFC.myc.heatmap.matrix <- logcpm[logFC.myc.genes.names, ]
+
+# 3. Filter out zero-variance rows (prevents scaling errors)
+row.variances <- apply(logFC.myc.heatmap.matrix, 1, var, na.rm = TRUE)
+logFC.myc.clean <- logFC.myc.heatmap.matrix[row_variances > 0 & !is.na(row_variances), ]
+
+# 4. Build group annotations
+annotation.col <- data.frame(
+  Group = dge.data$samples$group,
+  row.names = colnames(logcpm)
+)
+
+# 5. Render the interaction heatmap
+pheatmap(
+  logFC.myc.clean,
+  scale = "row",                    # Standardize row expression (Z-score)
+  annotation_col = annotation.col,  # Show sample groups at top
+  border_color = NA,               # Clean tile display
+  show_rownames = FALSE,           # Hide dense row labels
+  show_colnames = TRUE,            # Show sample names
+  clustering_distance_rows = "euclidean",
+  clustering_distance_cols = "euclidean",
+  clustering_method = "complete",
+  main = "Myc DEGs > 1 logFC",
+   filename = "results/new-results/logFC.myc.heatmap.pdf",  # Saved to new subfolder
+  width = 8,
+  height = 10
+)
+```
+
+
+```{r}
+# 1. Extract DEGs (gene names)
+logFC.trt.genes.names <- rownames(logFC.trt.degs)
+
+# 2. Compute logCPM and subset matrix for interaction genes only
+logcpm <- cpm(dge.data, log = TRUE)
+logFC.trt.heatmap.matrix <- logcpm[logFC.trt.genes.names, ]
+
+# 3. Filter out zero-variance rows (prevents scaling errors)
+row.variances <- apply(logFC.trt.heatmap.matrix, 1, var, na.rm = TRUE)
+logFC.trt.clean <- logFC.trt.heatmap.matrix[row_variances > 0 & !is.na(row_variances), ]
+
+# 4. Build group annotations
+annotation.col <- data.frame(
+  Group = dge.data$samples$group,
+  row.names = colnames(logcpm)
+)
+
+# 5. Render the interaction heatmap
+pheatmap(
+  logFC.trt.clean,
+  scale = "row",                    # Standardize row expression (Z-score)
+  annotation_col = annotation.col,  # Show sample groups at top
+  border_color = NA,               # Clean tile display
+  show_rownames = FALSE,           # Hide dense row labels
+  show_colnames = TRUE,            # Show sample names
+  clustering_distance_rows = "euclidean",
+  clustering_distance_cols = "euclidean",
+  clustering_method = "complete",
+  main = "Trt DEGs > 1 logFC",
+)
+
+# 1. Create the nested results/new-results folder
+dir.create("results/new-results", recursive = TRUE, showWarnings = FALSE)
+
+# 2. Reset any active graphic connections from previous attempts
+while (!is.null(dev.list())) { dev.off() }
+
+```
+
+
+```{r}
+# 3. Export heatmap to the new subfolder
+pheatmap(
+  logFC.trt.clean,
+  scale = "row",
+  annotation_col = annotation.col,
+  border_color = NA,
+  show_rownames = FALSE,
+  show_colnames = TRUE,
+  clustering_distance_rows = "euclidean",
+  clustering_distance_cols = "euclidean",
+  clustering_method = "complete",
+  main = "Trt DEGs > 1 logFC",
+  filename = "results/new-results/logFC.trt.heatmap.pdf",  # Saved to new subfolder
+  width = 8,
+  height = 10
+)
+```
+
+
+
+let's save heatmaps
+
+```{r}
+# Save as high-resolution PNG
+pheatmap(
+  mat_scaled,
+  filename = "results/heatmap.png",
+  width = 8,
+  height = 10,
+  res = 300  # Sets resolution to 300 DPI
+)
+```
+
+
+
+
