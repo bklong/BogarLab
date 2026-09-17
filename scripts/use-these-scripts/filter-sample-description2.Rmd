@@ -5,6 +5,7 @@ date: "2026-09-16"
 output: html_document
 ---
 
+Load and QC the RNAseq counts.
 
 ```{r}
 PM.counts <- read.table("Psme_RNASeq_July2024_Psme.1_0_counts.txt", header = TRUE) 
@@ -21,6 +22,8 @@ library(tibble)
 PM.counts.noid <- as_tibble(PM.counts)
 PM.counts.noid
 ```
+
+Create a data frame that describes the experiment.
 
 ```{r}
 library(tidyverse)
