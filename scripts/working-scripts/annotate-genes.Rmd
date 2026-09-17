@@ -13,20 +13,39 @@ let's start with extracting protein sequences from genes of interest
 ```{r}
 library(Biostrings)
 
-# 1. Load your master protein/transcript FASTA
-all_sequences <- readAAStringSet("path/to/full_predicted_orfs.faa") 
-# (Use readDNAStringSet if uploading nucleotide sequences)
+# 1. Load the peptide FASTA file
+pep_seqs <- readAAStringSet("C:/Users/britt/Documents/R/BogarLab/data/Psme.1_0.pep.fa.gz")
+```
+```{r}
+library(dplyr)
 
-# 2. Define your vector of target DEGs (e.g., genes with |logFC| > 1)
-target_gene_ids <- rownames(top_degs)
+# 1. Filter your edgeR results for significant DEGs (e.g., FDR < 0.05 and |logFC| > 1)
+sig_degs <- res$table %>%
+  filter(FDR < 0.05 & abs(logFC) > 1)
 
-# 3. Filter sequences matching your target IDs
-selected_sequences <- all_sequences[names(all_sequences) %in% target_gene_ids]
+# 2. Extract the gene IDs (row names)
+target_gene_ids <- rownames(sig_degs)
 
-# 4. Save the subset to a new FASTA file
-writeXStringSet(selected_sequences, "results/new-results/top_DEGs_for_eggnog.fasta")
+# 3. Quick check of your IDs
+head(target_gene_ids)
+length(target_gene_ids)
 ```
 
+
+
+
+```{r}
+# 2. Filter for your target DEGs
+# (Ensure target_gene_ids matches the exact header format in names(pep_seqs))
+selected_peps <- pep_seqs[names(pep_seqs) %in% target_gene_ids]
+
+```
+
+
+```{r}
+# 3. Export the subset for eggNOG-mapper
+writeXStringSet(selected_peps, "results/new-results/degs_for_eggnog.fasta")
+```
 
 
 
