@@ -1,0 +1,10 @@
+---
+title: "get-degs"
+author: "Britt"
+date: "2026-09-17"
+output: html_document
+---
+
+Test the significance of experimental parameters for explaining gene expression.
+
+
