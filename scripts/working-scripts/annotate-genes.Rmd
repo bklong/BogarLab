@@ -19,12 +19,8 @@ pep_seqs <- readAAStringSet("C:/Users/britt/Documents/R/BogarLab/data/Psme.1_0.p
 ```{r}
 library(dplyr)
 
-# 1. Filter your edgeR results for significant DEGs (e.g., FDR < 0.05 and |logFC| > 1)
-sig_degs <- res$table %>%
-  filter(FDR < 0.05 & abs(logFC) > 1)
-
 # 2. Extract the gene IDs (row names)
-target_gene_ids <- rownames(sig_degs)
+target_gene_ids <- rownames(top10.trt)
 
 # 3. Quick check of your IDs
 head(target_gene_ids)
@@ -44,10 +40,37 @@ selected_peps <- pep_seqs[names(pep_seqs) %in% target_gene_ids]
 
 ```{r}
 # 3. Export the subset for eggNOG-mapper
-writeXStringSet(selected_peps, "results/new-results/degs_for_eggnog.fasta")
+writeXStringSet(selected_peps, "degs_for_eggnog.fasta")
 ```
 
 
+```{r}
+library(dplyr)
+
+# 1. Read Mercator text output
+mercator_raw <- read.delim(
+  "psme.results.txt",
+  header = TRUE,
+  sep = "\t",
+  comment.char = "#",
+  stringsAsFactors = FALSE
+)
+```
 
 
+```{r}
+mercator_annot <- mercator_raw %>%
+  select(
+    gene_id = IDENTIFIER,
+    bin_code = BINCODE,
+    description = NAME
+  ) %>%
+  # Remove quotation marks if Mercator wrapped IDs in quotes
+  mutate(
+    gene_id = gsub("'", "", gene_id),
+    clean_label = paste0(description, " (", gene_id, ")")
+  )
+
+mercator_annot
+```
 
