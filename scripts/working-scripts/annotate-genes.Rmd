@@ -74,3 +74,46 @@ mercator_annot <- mercator_raw %>%
 mercator_annot
 ```
 
+```{r}
+library(dplyr)
+library(readr)
+
+# 1. Read the annotations file while filtering header metadata
+eggnog_data <- read_tsv(
+  "query.emapper.annotations",
+  comment = "##",       # Skips double-hash header info
+  col_names = TRUE      # Uses the single-hash header line for column names
+)
+
+# 2. Fix the first column name (it often inherits a '#' from the header line)
+colnames(eggnog_data)[1] <- "query"
+
+# 3. Select the most useful columns for your RNA-seq project
+library(dplyr)
+
+# Extract and clean annotations matching your exact headers
+clean_annotations <- eggnog_data %>%
+  select(
+    gene_id = query,
+    symbol = Preferred_name,
+    description = eggNOG_OGs,  # Uses Orthologous Group info for function
+    go_terms = GOs,
+    kegg_pathways = KEGG_Pathway,
+    cog_category = COG_category,
+    pfam = PFAMs
+  ) %>%
+  mutate(
+    # Clean up empty/dash values
+    symbol = ifelse(symbol == "-" | is.na(symbol), gene_id, symbol),
+    description = ifelse(description == "-" | is.na(description), "Uncharacterized protein", description),
+    
+    # Create a concise label for plots and heatmaps
+    clean_label = paste0(symbol, " (", gene_id, ")")
+  )
+
+# Verify the cleaned table
+clean_annotations
+```
+
+
+  
