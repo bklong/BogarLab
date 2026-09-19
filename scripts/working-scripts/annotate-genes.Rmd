@@ -20,7 +20,7 @@ pep_seqs <- readAAStringSet("C:/Users/britt/Documents/R/BogarLab/data/Psme.1_0.p
 library(dplyr)
 
 # 2. Extract the gene IDs (row names)
-target_gene_ids <- rownames(top10.trt)
+target_gene_ids <- rownames(sig.trt.degs)
 
 # 3. Quick check of your IDs
 head(target_gene_ids)
@@ -40,7 +40,7 @@ selected_peps <- pep_seqs[names(pep_seqs) %in% target_gene_ids]
 
 ```{r}
 # 3. Export the subset for eggNOG-mapper
-writeXStringSet(selected_peps, "degs_for_eggnog.fasta")
+writeXStringSet(selected_peps, "sig.trt.fasta")
 ```
 
 
