@@ -80,7 +80,7 @@ library(readr)
 
 # 1. Read the annotations file while filtering header metadata
 eggnog_data <- read_tsv(
-  "query.emapper.annotations",
+  "trt.emapper..annotations",
   comment = "##",       # Skips double-hash header info
   col_names = TRUE      # Uses the single-hash header line for column names
 )
